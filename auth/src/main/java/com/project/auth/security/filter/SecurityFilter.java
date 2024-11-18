@@ -1,6 +1,6 @@
 package com.project.auth.security.filter;
 
-import com.project.auth.security.entity.UserEntity;
+import com.project.auth.security.domain.UserEntity;
 import com.project.auth.security.repository.UserEntityRepository;
 import com.project.auth.security.service.TokenService;
 import jakarta.servlet.FilterChain;

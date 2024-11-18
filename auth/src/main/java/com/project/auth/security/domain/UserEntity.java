@@ -1,4 +1,4 @@
-package com.project.auth.security.entity;
+package com.project.auth.security.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

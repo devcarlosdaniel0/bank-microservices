@@ -2,7 +2,7 @@ package com.project.auth.security.controller;
 
 import com.project.auth.security.dto.LoginDTO;
 import com.project.auth.security.dto.RegisterDTO;
-import com.project.auth.security.entity.UserEntity;
+import com.project.auth.security.domain.UserEntity;
 import com.project.auth.security.repository.UserEntityRepository;
 import com.project.auth.security.service.TokenService;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class AuthController {
 
         Authentication auth = authenticationManager.authenticate(authentication);
 
-        String token = tokenService.generateToken((User) auth.getPrincipal());
+        String token = tokenService.generateToken((UserEntity) auth.getPrincipal());
 
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
