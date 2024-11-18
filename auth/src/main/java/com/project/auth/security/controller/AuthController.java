@@ -1,5 +1,6 @@
 package com.project.auth.security.controller;
 
+import com.project.auth.security.dto.LoginDTO;
 import com.project.auth.security.dto.RegisterDTO;
 import com.project.auth.security.entity.UserEntity;
 import com.project.auth.security.repository.UserEntityRepository;
@@ -7,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +27,17 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
+    @PostMapping("login")
+    public ResponseEntity<String> login(@RequestBody LoginDTO loginDTO) {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(loginDTO.username(), loginDTO.password());
+
+        Authentication auth = authenticationManager.authenticate(authentication);
+
+        return new ResponseEntity<>("Login Success!", HttpStatus.OK);
+    }
+
+    @Transactional
     @PostMapping("register")
     public ResponseEntity<String> register(@RequestBody RegisterDTO registerDTO) {
         if (userEntityRepository.findByUsername(registerDTO.username()).isPresent()) {
@@ -37,6 +52,6 @@ public class AuthController {
 
         userEntityRepository.save(userToBeSaved);
 
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return new ResponseEntity<>("Register success!", HttpStatus.CREATED);
     }
 }
