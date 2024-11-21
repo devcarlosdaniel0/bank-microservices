@@ -21,11 +21,6 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>com.project</groupId>
-			<artifactId>token</artifactId>
-			<version>${token-project.version}</version>
-		</dependency>
 
 		<dependency>
 			<groupId>com.project</groupId>
