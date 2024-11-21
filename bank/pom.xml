@@ -16,13 +16,21 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<token-project.version>1.0-SNAPSHOT</token-project.version>
+		<auth-project.version>0.0.1-SNAPSHOT</auth-project.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>com.project</groupId>
 			<artifactId>token</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>${token-project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.project</groupId>
+			<artifactId>auth</artifactId>
+			<version>${auth-project.version}</version>
 		</dependency>
 	</dependencies>
 
