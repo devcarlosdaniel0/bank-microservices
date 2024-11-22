@@ -1,6 +1,6 @@
 package com.project.auth.security.service;
 
-import com.project.auth.security.repository.UserEntityRepository;
+import com.project.core.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

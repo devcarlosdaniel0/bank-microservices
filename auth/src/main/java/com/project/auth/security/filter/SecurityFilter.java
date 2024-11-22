@@ -1,8 +1,8 @@
 package com.project.auth.security.filter;
 
-import com.project.auth.security.domain.UserEntity;
-import com.project.auth.security.repository.UserEntityRepository;
+import com.project.core.repository.UserEntityRepository;
 import com.project.auth.security.service.TokenService;
+import com.project.core.domain.UserEntity;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

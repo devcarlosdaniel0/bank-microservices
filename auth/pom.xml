@@ -16,9 +16,17 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<core-project.version>1.0-SNAPSHOT</core-project.version>
 	</properties>
 
 	<dependencies>
+
+		<dependency>
+			<groupId>com.project</groupId>
+			<artifactId>core</artifactId>
+			<version>${core-project.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>

@@ -18,9 +18,16 @@
 		<java.version>17</java.version>
 		<token-project.version>1.0-SNAPSHOT</token-project.version>
 		<auth-project.version>0.0.1-SNAPSHOT</auth-project.version>
+		<core-project.version>1.0-SNAPSHOT</core-project.version>
 	</properties>
 
 	<dependencies>
+
+		<dependency>
+			<groupId>com.project</groupId>
+			<artifactId>core</artifactId>
+			<version>${core-project.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.project</groupId>

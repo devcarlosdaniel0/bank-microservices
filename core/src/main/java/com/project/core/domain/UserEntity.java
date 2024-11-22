@@ -1,4 +1,4 @@
-package com.project.auth.security.domain;
+package com.project.core.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -35,6 +35,8 @@ public class UserEntity implements UserDetails {
     @NotNull
     private UserRole roles;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.PERSIST)
+    private BankAccount bankAccount;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

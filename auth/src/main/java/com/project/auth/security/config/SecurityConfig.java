@@ -1,7 +1,6 @@
 package com.project.auth.security.config;
 
 import com.project.auth.security.filter.SecurityFilter;
-import com.project.auth.security.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

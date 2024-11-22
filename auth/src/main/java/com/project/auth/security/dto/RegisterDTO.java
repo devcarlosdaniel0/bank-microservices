@@ -1,6 +1,6 @@
 package com.project.auth.security.dto;
 
-import com.project.auth.security.domain.UserRole;
+import com.project.core.domain.UserRole;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
