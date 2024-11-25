@@ -1,4 +1,6 @@
 package com.project.bank.dto;
 
-public record CreateBankAccountDTO(Long userID) {
+import jakarta.validation.constraints.NotNull;
+
+public record CreateBankAccountDTO(@NotNull Long userID) {
 }

@@ -5,6 +5,7 @@ import com.project.auth.security.dto.RegisterDTO;
 import com.project.core.domain.UserEntity;
 import com.project.core.repository.UserEntityRepository;
 import com.project.auth.security.service.TokenService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class AuthController {
 
     @Transactional
     @PostMapping("login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO loginDTO) {
+    public ResponseEntity<String> login(@RequestBody @Valid LoginDTO loginDTO) {
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(loginDTO.username(), loginDTO.password());
 
@@ -40,7 +41,7 @@ public class AuthController {
 
     @Transactional
     @PostMapping("register")
-    public ResponseEntity<String> register(@RequestBody RegisterDTO registerDTO) {
+    public ResponseEntity<String> register(@RequestBody @Valid RegisterDTO registerDTO) {
         if (userEntityRepository.findByUsername(registerDTO.username()).isPresent()) {
             return new ResponseEntity<>("Username already exists!", HttpStatus.BAD_REQUEST);
         }
