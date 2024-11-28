@@ -49,7 +49,6 @@ class BankAccountServiceTest {
             var dto = new CreateBankAccountDTO(1L);
             var user = new UserEntity(1L, "carlos", "aodfiso", UserRole.USER, null);
             var expectedBankAccount = BankAccount.builder()
-                    .id(1L)
                     .balance(BigDecimal.ZERO)
                     .user(user)
                     .build();
@@ -99,7 +98,6 @@ class BankAccountServiceTest {
             var dto = new CreateBankAccountDTO(1L);
             var user = new UserEntity(1L, "carlos", "aodfiso", UserRole.USER, null);
             var existingBankAccount = BankAccount.builder()
-                    .id(1L)
                     .balance(BigDecimal.ZERO)
                     .user(user)
                     .build();
