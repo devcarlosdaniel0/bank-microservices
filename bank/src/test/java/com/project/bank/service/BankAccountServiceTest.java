@@ -122,4 +122,11 @@ class BankAccountServiceTest {
             assertThrows(NullPointerException.class, () -> bankAccountService.createBankAccount(null));
         }
     }
+
+    @Nested
+    class findAll {
+        @Test
+        @DisplayName("Should return a list of BankResponseDTO when successfully")
+        void shouldReturnListOfBankResponseDTOWhenSuccessfully
+    }
 }
