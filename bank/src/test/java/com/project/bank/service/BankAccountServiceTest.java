@@ -1,5 +1,6 @@
 package com.project.bank.service;
 
+import com.project.bank.dto.BankAccountResponseDTO;
 import com.project.bank.dto.CreateBankAccountDTO;
 import com.project.core.domain.BankAccount;
 import com.project.core.domain.UserEntity;
@@ -17,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -127,6 +129,24 @@ class BankAccountServiceTest {
     class findAll {
         @Test
         @DisplayName("Should return a list of BankResponseDTO when successfully")
-        void shouldReturnListOfBankResponseDTOWhenSuccessfully
+        void shouldReturnListOfBankResponseDTOWhenSuccessfully() {
+            // Arrange
+            var user = new UserEntity(1L, "carlos", "password", UserRole.USER, null);
+            var expectedBankAccount = BankAccount.builder()
+                    .balance(BigDecimal.ZERO)
+                    .user(user)
+                    .build();
+
+            when(bankAccountRepository.findAll()).thenReturn(List.of(expectedBankAccount));
+
+            // Act
+            List<BankAccountResponseDTO> result = bankAccountService.findAll();
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            assertEquals(user.getId(), result.get(0).getUserId());
+            assertEquals(expectedBankAccount.getBalance(), result.get(0).getBalance());
+        }
     }
 }
