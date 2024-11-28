@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 @Service
 @RequiredArgsConstructor
 public class BankAccountService {
-
     private final BankAccountRepository bankAccountRepository;
     private final UserEntityRepository userEntityRepository;
 

@@ -3,5 +3,7 @@ package com.project.core.repository;
 import com.project.core.domain.BankAccount;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface BankAccountRepository extends JpaRepository<BankAccount, Long> {
+import java.util.UUID;
+
+public interface BankAccountRepository extends JpaRepository<BankAccount, UUID> {
 }
