@@ -2,6 +2,8 @@ package com.project.bank.service;
 
 import com.project.bank.dto.BankAccountResponseDTO;
 import com.project.bank.dto.CreateBankAccountDTO;
+import com.project.bank.exception.UserAlreadyHasBankAccountException;
+import com.project.bank.exception.UserIdNotFoundException;
 import com.project.core.domain.BankAccount;
 import com.project.core.domain.UserEntity;
 import com.project.core.repository.BankAccountRepository;
@@ -13,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +25,10 @@ public class BankAccountService {
     @Transactional
     public BankAccount createBankAccount(CreateBankAccountDTO dto) {
         UserEntity user = userEntityRepository.findById(dto.userID())
-                .orElseThrow(() -> new RuntimeException("User ID not found"));
+                .orElseThrow(() -> new UserIdNotFoundException("User ID not found"));
 
         if (user.getBankAccount() != null) {
-            throw new RuntimeException("User already has a bank account");
+            throw new UserAlreadyHasBankAccountException("User already has a bank account");
         }
 
         BankAccount bankAccount = BankAccount.builder()
@@ -43,10 +44,8 @@ public class BankAccountService {
 
         ModelMapper modelMapper = new ModelMapper();
 
-        List<BankAccountResponseDTO> dto = bankAccounts.stream()
+        return bankAccounts.stream()
                 .map(account -> modelMapper.map(account, BankAccountResponseDTO.class))
-                .collect(Collectors.toList());
-
-        return dto;
+                .toList();
     }
 }

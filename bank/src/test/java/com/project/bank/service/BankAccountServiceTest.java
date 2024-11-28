@@ -2,6 +2,8 @@ package com.project.bank.service;
 
 import com.project.bank.dto.BankAccountResponseDTO;
 import com.project.bank.dto.CreateBankAccountDTO;
+import com.project.bank.exception.UserAlreadyHasBankAccountException;
+import com.project.bank.exception.UserIdNotFoundException;
 import com.project.core.domain.BankAccount;
 import com.project.core.domain.UserEntity;
 import com.project.core.domain.UserRole;
@@ -86,7 +88,7 @@ class BankAccountServiceTest {
             when(userEntityRepository.findById(dto.userID())).thenReturn(Optional.empty());
 
             // Act & Assert
-            RuntimeException exception = assertThrows(RuntimeException.class, () -> bankAccountService.createBankAccount(dto));
+            RuntimeException exception = assertThrows(UserIdNotFoundException.class, () -> bankAccountService.createBankAccount(dto));
 
             assertEquals("User ID not found", exception.getMessage());
             verify(userEntityRepository, times(1)).findById(dto.userID());
@@ -110,7 +112,7 @@ class BankAccountServiceTest {
 
 
             // Act & Assert
-            RuntimeException exception = assertThrows(RuntimeException.class, () -> bankAccountService.createBankAccount(dto));
+            RuntimeException exception = assertThrows(UserAlreadyHasBankAccountException.class, () -> bankAccountService.createBankAccount(dto));
 
             assertEquals("User already has a bank account", exception.getMessage());
             verify(userEntityRepository, times(1)).findById(dto.userID());
