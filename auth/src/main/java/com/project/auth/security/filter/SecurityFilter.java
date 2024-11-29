@@ -1,5 +1,6 @@
 package com.project.auth.security.filter;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.project.core.repository.UserEntityRepository;
 import com.project.auth.security.service.TokenService;
 import com.project.core.domain.UserEntity;
@@ -26,10 +27,18 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
         String token = this.recoverToken(request);
         if (token != null) {
-            String subject = tokenService.validateToken(token);
-            UserEntity user = userRepository.findByUsername(subject).orElseThrow(() -> new RuntimeException("Username not found"));
+            DecodedJWT decodedToken = tokenService.validateToken(token);
+            String username = decodedToken.getSubject();
+            Long userId = decodedToken.getClaim("userId").asLong();
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+            UserEntity user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Username not found"));
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+
+            authentication.setDetails(userId);
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
