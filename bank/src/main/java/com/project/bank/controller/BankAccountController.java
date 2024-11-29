@@ -1,5 +1,6 @@
 package com.project.bank.controller;
 
+import com.project.bank.dto.AddBalanceDTO;
 import com.project.bank.dto.BankAccountResponseDTO;
 import com.project.bank.dto.CreateBankAccountDTO;
 import com.project.bank.service.BankAccountService;
@@ -23,6 +24,16 @@ public class BankAccountController {
     @PostMapping("create")
     public ResponseEntity<BankAccountResponseDTO> createBankAccount(@RequestBody @Valid CreateBankAccountDTO createBankAccountDTO) {
         return new ResponseEntity<>(bankAccountService.createBankAccount(createBankAccountDTO), HttpStatus.CREATED);
+    }
+
+    @PostMapping("addBalance")
+    public ResponseEntity<BankAccountResponseDTO> addBalance(@RequestBody @Valid AddBalanceDTO addBalanceDTO) {
+        return new ResponseEntity<>(bankAccountService.addBalance(addBalanceDTO), HttpStatus.OK);
+    }
+
+    @PostMapping("withdrawalBalance")
+    public ResponseEntity<BankAccountResponseDTO> withdrawalBalance(@RequestBody @Valid AddBalanceDTO addBalanceDTO) {
+        return new ResponseEntity<>(bankAccountService.withdrawalBalance(addBalanceDTO), HttpStatus.OK);
     }
 
     @GetMapping("all")

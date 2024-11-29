@@ -80,7 +80,7 @@ class BankAccountServiceTest {
         @DisplayName("Should create bank account when user exists and has no bank account")
         void shouldCreateBankAccountWhenUserExistsAndHasNoBankAccount() {
             // Arrange
-            when(userEntityRepository.findById(dto.userID())).thenReturn(Optional.of(user));
+            when(userEntityRepository.findById(dto.userId())).thenReturn(Optional.of(user));
             when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
             // Act
@@ -99,7 +99,7 @@ class BankAccountServiceTest {
             assertEquals(user, bankAccountCaptured.getUser());
             assertEquals(BigDecimal.ZERO, bankAccountCaptured.getBalance());
 
-            verify(userEntityRepository, times(1)).findById(dto.userID());
+            verify(userEntityRepository, times(1)).findById(dto.userId());
             verify(bankAccountRepository, times(1)).save(any(BankAccount.class));
         }
 
@@ -107,13 +107,13 @@ class BankAccountServiceTest {
         @DisplayName("Should throw exception when user id is not found")
         void shouldThrowExceptionWhenUserIdIsNotFound() {
             // Arrange
-            when(userEntityRepository.findById(dto.userID())).thenReturn(Optional.empty());
+            when(userEntityRepository.findById(dto.userId())).thenReturn(Optional.empty());
 
             // Act & Assert
             UserIdNotFoundException exception = assertThrows(UserIdNotFoundException.class, () -> bankAccountService.createBankAccount(dto));
 
             assertEquals("User ID not found", exception.getMessage());
-            verify(userEntityRepository, times(1)).findById(dto.userID());
+            verify(userEntityRepository, times(1)).findById(dto.userId());
             verifyNoInteractions(bankAccountRepository);
         }
 
@@ -123,14 +123,14 @@ class BankAccountServiceTest {
             // Arrange
             user.setBankAccount(bankAccount);
 
-            when(userEntityRepository.findById(dto.userID())).thenReturn(Optional.of(user));
+            when(userEntityRepository.findById(dto.userId())).thenReturn(Optional.of(user));
 
             // Act & Assert
             UserAlreadyHasBankAccountException exception = assertThrows(UserAlreadyHasBankAccountException.class,
                     () -> bankAccountService.createBankAccount(dto));
 
             assertEquals("User already has a bank account", exception.getMessage());
-            verify(userEntityRepository, times(1)).findById(dto.userID());
+            verify(userEntityRepository, times(1)).findById(dto.userId());
             verifyNoInteractions(bankAccountRepository);
         }
 

@@ -1,7 +1,9 @@
 package com.project.bank.service;
 
+import com.project.bank.dto.AddBalanceDTO;
 import com.project.bank.dto.BankAccountResponseDTO;
 import com.project.bank.dto.CreateBankAccountDTO;
+import com.project.bank.exception.BankAccountIdNotFoundException;
 import com.project.bank.exception.UserAlreadyHasBankAccountException;
 import com.project.bank.exception.UserIdNotFoundException;
 import com.project.core.domain.BankAccount;
@@ -25,7 +27,7 @@ public class BankAccountService {
 
     @Transactional
     public BankAccountResponseDTO createBankAccount(CreateBankAccountDTO dto) {
-        UserEntity user = userEntityRepository.findById(dto.userID())
+        UserEntity user = userEntityRepository.findById(dto.userId())
                 .orElseThrow(() -> new UserIdNotFoundException("User ID not found"));
 
         if (user.getBankAccount() != null) {
@@ -37,6 +39,30 @@ public class BankAccountService {
                 .balance(BigDecimal.ZERO)
                 .user(user)
                 .build();
+
+        bankAccountRepository.save(bankAccount);
+
+        return modelMapper.map(bankAccount, BankAccountResponseDTO.class);
+    }
+
+    @Transactional
+    public BankAccountResponseDTO addBalance(AddBalanceDTO addBalanceDTO) {
+        BankAccount bankAccount = bankAccountRepository.findById(addBalanceDTO.accountId())
+                .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account id was not found"));
+
+        bankAccount.setBalance(bankAccount.getBalance().add(addBalanceDTO.value()));
+
+        bankAccountRepository.save(bankAccount);
+
+        return modelMapper.map(bankAccount, BankAccountResponseDTO.class);
+    }
+
+    @Transactional
+    public BankAccountResponseDTO withdrawalBalance(AddBalanceDTO addBalanceDTO) {
+        BankAccount bankAccount = bankAccountRepository.findById(addBalanceDTO.accountId())
+                .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account id was not found"));
+
+        bankAccount.setBalance(bankAccount.getBalance().subtract(addBalanceDTO.value()));
 
         bankAccountRepository.save(bankAccount);
 
