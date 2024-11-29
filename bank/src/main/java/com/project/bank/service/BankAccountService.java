@@ -33,8 +33,9 @@ public class BankAccountService {
         }
 
         BankAccount bankAccount = BankAccount.builder()
-                .user(user)
+                .accountName(user.getUsername())
                 .balance(BigDecimal.ZERO)
+                .user(user)
                 .build();
 
         return bankAccountRepository.save(bankAccount);

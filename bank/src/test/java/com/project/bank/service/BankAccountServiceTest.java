@@ -9,6 +9,7 @@ import com.project.core.domain.UserEntity;
 import com.project.core.domain.UserRole;
 import com.project.core.repository.BankAccountRepository;
 import com.project.core.repository.UserEntityRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -27,9 +29,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-
 @ExtendWith(MockitoExtension.class)
 class BankAccountServiceTest {
+
+    @Mock
+    private ModelMapper modelMapper;
 
     @Mock
     private BankAccountRepository bankAccountRepository;
@@ -43,6 +47,32 @@ class BankAccountServiceTest {
     @Captor
     private ArgumentCaptor<BankAccount> bankAccountArgumentCaptor;
 
+    private CreateBankAccountDTO dto;
+    private UserEntity user;
+    private BankAccount bankAccount;
+
+    @BeforeEach
+    void setUp() {
+        dto = new CreateBankAccountDTO(1L);
+        user = new UserEntity(1L, "carlos", "123", UserRole.USER, null);
+        bankAccount = BankAccount.builder()
+                .accountName(user.getUsername())
+                .balance(BigDecimal.ZERO)
+                .user(user)
+                .build();
+
+        lenient().when(modelMapper.map(any(BankAccount.class), eq(BankAccountResponseDTO.class)))
+                .thenAnswer(invocation -> {
+                    BankAccount source = invocation.getArgument(0);
+                    return new BankAccountResponseDTO(
+                                                source.getId(),
+                            source.getBalance(),
+                            source.getUser().getId(),
+                            source.getAccountName()
+                                        );
+                });
+    }
+
     @Nested
     class createBankAccount {
 
@@ -50,15 +80,8 @@ class BankAccountServiceTest {
         @DisplayName("Should create bank account when user exists and has no bank account")
         void shouldCreateBankAccountWhenUserExistsAndHasNoBankAccount() {
             // Arrange
-            var dto = new CreateBankAccountDTO(1L);
-            var user = new UserEntity(1L, "carlos", "aodfiso", UserRole.USER, null);
-            var expectedBankAccount = BankAccount.builder()
-                    .balance(BigDecimal.ZERO)
-                    .user(user)
-                    .build();
-
             when(userEntityRepository.findById(dto.userID())).thenReturn(Optional.of(user));
-            when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(expectedBankAccount);
+            when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
             // Act
             BankAccount result = bankAccountService.createBankAccount(dto);
@@ -68,9 +91,9 @@ class BankAccountServiceTest {
             var bankAccountCaptured = bankAccountArgumentCaptor.getValue();
 
             assertNotNull(result);
-            assertEquals(expectedBankAccount.getId(), result.getId());
-            assertEquals(expectedBankAccount.getUser(), result.getUser());
-            assertEquals(expectedBankAccount.getBalance(), result.getBalance());
+            assertEquals(bankAccount.getId(), result.getId());
+            assertEquals(bankAccount.getUser(), result.getUser());
+            assertEquals(bankAccount.getBalance(), result.getBalance());
 
             assertEquals(user, bankAccountCaptured.getUser());
             assertEquals(BigDecimal.ZERO, bankAccountCaptured.getBalance());
@@ -83,12 +106,10 @@ class BankAccountServiceTest {
         @DisplayName("Should throw exception when user id is not found")
         void shouldThrowExceptionWhenUserIdIsNotFound() {
             // Arrange
-            var dto = new CreateBankAccountDTO(1L);
-
             when(userEntityRepository.findById(dto.userID())).thenReturn(Optional.empty());
 
             // Act & Assert
-            RuntimeException exception = assertThrows(UserIdNotFoundException.class, () -> bankAccountService.createBankAccount(dto));
+            UserIdNotFoundException exception = assertThrows(UserIdNotFoundException.class, () -> bankAccountService.createBankAccount(dto));
 
             assertEquals("User ID not found", exception.getMessage());
             verify(userEntityRepository, times(1)).findById(dto.userID());
@@ -99,20 +120,13 @@ class BankAccountServiceTest {
         @DisplayName("Should throw exception when user already has a bank account")
         void ShouldThrowExceptionWhenUserAlreadyHasABankAccount() {
             // Arrange
-            var dto = new CreateBankAccountDTO(1L);
-            var user = new UserEntity(1L, "carlos", "aodfiso", UserRole.USER, null);
-            var existingBankAccount = BankAccount.builder()
-                    .balance(BigDecimal.ZERO)
-                    .user(user)
-                    .build();
-
-            user.setBankAccount(existingBankAccount);
+            user.setBankAccount(bankAccount);
 
             when(userEntityRepository.findById(dto.userID())).thenReturn(Optional.of(user));
 
-
             // Act & Assert
-            RuntimeException exception = assertThrows(UserAlreadyHasBankAccountException.class, () -> bankAccountService.createBankAccount(dto));
+            UserAlreadyHasBankAccountException exception = assertThrows(UserAlreadyHasBankAccountException.class,
+                    () -> bankAccountService.createBankAccount(dto));
 
             assertEquals("User already has a bank account", exception.getMessage());
             verify(userEntityRepository, times(1)).findById(dto.userID());
@@ -133,13 +147,7 @@ class BankAccountServiceTest {
         @DisplayName("Should return a list of BankResponseDTO when successfully")
         void shouldReturnListOfBankResponseDTOWhenSuccessfully() {
             // Arrange
-            var user = new UserEntity(1L, "carlos", "password", UserRole.USER, null);
-            var expectedBankAccount = BankAccount.builder()
-                    .balance(BigDecimal.ZERO)
-                    .user(user)
-                    .build();
-
-            when(bankAccountRepository.findAll()).thenReturn(List.of(expectedBankAccount));
+            when(bankAccountRepository.findAll()).thenReturn(List.of(bankAccount));
 
             // Act
             List<BankAccountResponseDTO> result = bankAccountService.findAll();
@@ -148,7 +156,7 @@ class BankAccountServiceTest {
             assertNotNull(result);
             assertEquals(1, result.size());
             assertEquals(user.getId(), result.get(0).getUserId());
-            assertEquals(expectedBankAccount.getBalance(), result.get(0).getBalance());
+            assertEquals(bankAccount.getBalance(), result.get(0).getBalance());
         }
     }
 }
