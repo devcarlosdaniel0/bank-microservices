@@ -1,9 +1,10 @@
 package com.project.bank.service;
 
-import com.project.bank.dto.AddBalanceDTO;
+import com.project.bank.dto.UpdateBalanceDTO;
 import com.project.bank.dto.BankAccountResponseDTO;
 import com.project.bank.dto.CreateBankAccountDTO;
 import com.project.bank.exception.BankAccountIdNotFoundException;
+import com.project.bank.exception.InsufficientFundsException;
 import com.project.bank.exception.UserAlreadyHasBankAccountException;
 import com.project.bank.exception.UserIdNotFoundException;
 import com.project.core.domain.BankAccount;
@@ -46,27 +47,36 @@ public class BankAccountService {
     }
 
     @Transactional
-    public BankAccountResponseDTO addBalance(AddBalanceDTO addBalanceDTO) {
-        BankAccount bankAccount = bankAccountRepository.findById(addBalanceDTO.accountId())
+    public BankAccountResponseDTO addBalance(UpdateBalanceDTO updateBalanceDTO) {
+        return updateBalance(updateBalanceDTO, Operation.ADD);
+    }
+
+    @Transactional
+    public BankAccountResponseDTO withdrawalBalance(UpdateBalanceDTO updateBalanceDTO) {
+        return updateBalance(updateBalanceDTO, Operation.SUBTRACT);
+    }
+
+    private BankAccountResponseDTO updateBalance(UpdateBalanceDTO updateBalanceDTO, Operation operation) {
+        BankAccount bankAccount = bankAccountRepository.findById(updateBalanceDTO.accountId())
                 .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account id was not found"));
 
-        bankAccount.setBalance(bankAccount.getBalance().add(addBalanceDTO.value()));
+        BigDecimal newBalance = operation == Operation.ADD
+                ? bankAccount.getBalance().add(updateBalanceDTO.value())
+                : bankAccount.getBalance().subtract(updateBalanceDTO.value());
+
+        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new InsufficientFundsException("Insufficient funds for the withdrawal");
+        }
+
+        bankAccount.setBalance(newBalance);
 
         bankAccountRepository.save(bankAccount);
 
         return modelMapper.map(bankAccount, BankAccountResponseDTO.class);
     }
 
-    @Transactional
-    public BankAccountResponseDTO withdrawalBalance(AddBalanceDTO addBalanceDTO) {
-        BankAccount bankAccount = bankAccountRepository.findById(addBalanceDTO.accountId())
-                .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account id was not found"));
-
-        bankAccount.setBalance(bankAccount.getBalance().subtract(addBalanceDTO.value()));
-
-        bankAccountRepository.save(bankAccount);
-
-        return modelMapper.map(bankAccount, BankAccountResponseDTO.class);
+    private enum Operation {
+        ADD, SUBTRACT
     }
 
     public List<BankAccountResponseDTO> findAll() {

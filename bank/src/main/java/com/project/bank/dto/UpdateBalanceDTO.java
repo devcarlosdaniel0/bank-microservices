@@ -5,5 +5,5 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record AddBalanceDTO (@NotNull UUID accountId, @NotNull BigDecimal value) {
+public record UpdateBalanceDTO(@NotNull UUID accountId, @NotNull BigDecimal value) {
 }

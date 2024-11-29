@@ -1,10 +1,9 @@
 package com.project.bank.controller;
 
-import com.project.bank.dto.AddBalanceDTO;
+import com.project.bank.dto.UpdateBalanceDTO;
 import com.project.bank.dto.BankAccountResponseDTO;
 import com.project.bank.dto.CreateBankAccountDTO;
 import com.project.bank.service.BankAccountService;
-import com.project.core.domain.BankAccount;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,13 +26,13 @@ public class BankAccountController {
     }
 
     @PostMapping("addBalance")
-    public ResponseEntity<BankAccountResponseDTO> addBalance(@RequestBody @Valid AddBalanceDTO addBalanceDTO) {
-        return new ResponseEntity<>(bankAccountService.addBalance(addBalanceDTO), HttpStatus.OK);
+    public ResponseEntity<BankAccountResponseDTO> addBalance(@RequestBody @Valid UpdateBalanceDTO updateBalanceDTO) {
+        return new ResponseEntity<>(bankAccountService.addBalance(updateBalanceDTO), HttpStatus.OK);
     }
 
     @PostMapping("withdrawalBalance")
-    public ResponseEntity<BankAccountResponseDTO> withdrawalBalance(@RequestBody @Valid AddBalanceDTO addBalanceDTO) {
-        return new ResponseEntity<>(bankAccountService.withdrawalBalance(addBalanceDTO), HttpStatus.OK);
+    public ResponseEntity<BankAccountResponseDTO> withdrawalBalance(@RequestBody @Valid UpdateBalanceDTO updateBalanceDTO) {
+        return new ResponseEntity<>(bankAccountService.withdrawalBalance(updateBalanceDTO), HttpStatus.OK);
     }
 
     @GetMapping("all")

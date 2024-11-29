@@ -2,6 +2,9 @@ package com.project.bank.service;
 
 import com.project.bank.dto.BankAccountResponseDTO;
 import com.project.bank.dto.CreateBankAccountDTO;
+import com.project.bank.dto.UpdateBalanceDTO;
+import com.project.bank.exception.BankAccountIdNotFoundException;
+import com.project.bank.exception.InsufficientFundsException;
 import com.project.bank.exception.UserAlreadyHasBankAccountException;
 import com.project.bank.exception.UserIdNotFoundException;
 import com.project.core.domain.BankAccount;
@@ -24,6 +27,7 @@ import org.modelmapper.ModelMapper;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -56,6 +60,7 @@ class BankAccountServiceTest {
         dto = new CreateBankAccountDTO(1L);
         user = new UserEntity(1L, "carlos", "123", UserRole.USER, null);
         bankAccount = BankAccount.builder()
+                .id(UUID.randomUUID())
                 .accountName(user.getUsername())
                 .balance(BigDecimal.ZERO)
                 .user(user)
@@ -85,6 +90,7 @@ class BankAccountServiceTest {
 
             // Act
             BankAccountResponseDTO result = bankAccountService.createBankAccount(dto);
+            result.setId(bankAccount.getId());
 
             // Assert
             verify(bankAccountRepository).save(bankAccountArgumentCaptor.capture());
@@ -159,6 +165,97 @@ class BankAccountServiceTest {
             assertEquals(bankAccount.getBalance(), result.get(0).getBalance());
             assertEquals(user.getId(), result.get(0).getUserId());
             assertEquals(user.getUsername(), result.get(0).getAccountName());
+        }
+    }
+
+    @Nested
+    class addBalance {
+        @Test
+        @DisplayName("Should add balance when successfully")
+        void shouldAddBalanceWhenSuccessfully() {
+            // Arrange
+            var updateBalanceDTO = new UpdateBalanceDTO(bankAccount.getId(), BigDecimal.valueOf(100));
+
+            when(bankAccountRepository.findById(updateBalanceDTO.accountId()))
+                    .thenReturn(Optional.of(bankAccount));
+            when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
+
+            // Act
+            BankAccountResponseDTO response = bankAccountService.addBalance(updateBalanceDTO);
+
+            // Assert
+            verify(bankAccountRepository).save(bankAccountArgumentCaptor.capture());
+            BankAccount capturedBankAccount = bankAccountArgumentCaptor.getValue();
+
+            assertNotNull(response);
+            assertEquals(BigDecimal.valueOf(100), capturedBankAccount.getBalance());
+            assertEquals(bankAccount.getId(), response.getId());
+            assertEquals(BigDecimal.valueOf(100), response.getBalance());
+        }
+    }
+
+    @Nested
+    class withdrawalBalance {
+        @Test
+        @DisplayName("Should withdrawal balance successfully when the value is not bigger than the actual balance")
+        void shouldWithdrawalBalanceSuccessfullyWhenTheValueIsNotBiggerThenTheActualBalance() {
+            // Arrange
+            var updateBalanceDTO = new UpdateBalanceDTO(bankAccount.getId(), BigDecimal.valueOf(100));
+            bankAccount.setBalance(BigDecimal.valueOf(100));
+
+            when(bankAccountRepository.findById(updateBalanceDTO.accountId()))
+                    .thenReturn(Optional.of(bankAccount));
+            when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
+
+            // Act
+            BankAccountResponseDTO response = bankAccountService.withdrawalBalance(updateBalanceDTO);
+
+            // Assert
+            verify(bankAccountRepository).save(bankAccountArgumentCaptor.capture());
+            BankAccount capturedBankAccount = bankAccountArgumentCaptor.getValue();
+
+            assertNotNull(response);
+            assertEquals(BigDecimal.valueOf(0), capturedBankAccount.getBalance());
+            assertEquals(bankAccount.getId(), response.getId());
+            assertEquals(BigDecimal.valueOf(0), response.getBalance());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when the value it's bigger than the actual balance")
+        void shouldThrowExceptionWhenTheValueItsBiggerThanTheActualBalance() {
+            // Arrange
+            var updateBalanceDTO = new UpdateBalanceDTO(bankAccount.getId(), BigDecimal.valueOf(100));
+
+            when(bankAccountRepository.findById(updateBalanceDTO.accountId()))
+                    .thenReturn(Optional.of(bankAccount));
+
+            // Act & Assert
+            InsufficientFundsException e = assertThrows(InsufficientFundsException.class, () ->
+                    bankAccountService.withdrawalBalance(updateBalanceDTO));
+
+            assertEquals("Insufficient funds for the withdrawal", e.getMessage());
+            verify(bankAccountRepository, never()).save(any(BankAccount.class));
+            verifyNoMoreInteractions(bankAccountRepository);
+        }
+    }
+
+    @Nested
+    class updateBalance {
+        @Test
+        @DisplayName("Should throw exception when the bank account id it's not found")
+        void shouldThrowExceptionWhenTheBankAccountIdItsNotFound() {
+            // Arrange
+            var updateBalanceDTO = new UpdateBalanceDTO(null, BigDecimal.valueOf(50));
+
+            when(bankAccountRepository.findById(updateBalanceDTO.accountId())).thenReturn(Optional.empty());
+
+            // Act & Assert
+            BankAccountIdNotFoundException e = assertThrows(BankAccountIdNotFoundException.class, () ->
+                    bankAccountService.addBalance(updateBalanceDTO));
+
+            assertEquals("The bank account id was not found", e.getMessage());
+            verify(bankAccountRepository, never()).save(any(BankAccount.class));
+            verifyNoMoreInteractions(bankAccountRepository);
         }
     }
 }

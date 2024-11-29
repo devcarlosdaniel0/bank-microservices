@@ -1,6 +1,7 @@
 package com.project.bank.handler;
 
 import com.project.bank.exception.BankAccountIdNotFoundException;
+import com.project.bank.exception.InsufficientFundsException;
 import com.project.bank.exception.UserAlreadyHasBankAccountException;
 import com.project.bank.exception.UserIdNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -46,6 +47,17 @@ public class BankExceptionHandler {
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+    }
+
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<ProblemDetail> handlerInsufficientFundsException(
+            InsufficientFundsException e) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        problemDetail.setTitle("The value you want to withdrawal it's bigger than you have!");
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
     }
 
     private String timeFormatted() {
