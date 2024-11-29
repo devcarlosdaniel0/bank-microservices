@@ -21,6 +21,7 @@ import java.util.List;
 public class BankAccountService {
     private final BankAccountRepository bankAccountRepository;
     private final UserEntityRepository userEntityRepository;
+    private final ModelMapper modelMapper;
 
     @Transactional
     public BankAccount createBankAccount(CreateBankAccountDTO dto) {
@@ -41,8 +42,6 @@ public class BankAccountService {
 
     public List<BankAccountResponseDTO> findAll() {
         List<BankAccount> bankAccounts = bankAccountRepository.findAll();
-
-        ModelMapper modelMapper = new ModelMapper();
 
         return bankAccounts.stream()
                 .map(account -> modelMapper.map(account, BankAccountResponseDTO.class))

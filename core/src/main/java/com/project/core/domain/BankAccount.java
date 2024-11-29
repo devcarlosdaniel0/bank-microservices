@@ -29,4 +29,6 @@ public class BankAccount {
     @NotNull
     private UserEntity user;
 
+    @NotNull
+    private String accountName;
 }

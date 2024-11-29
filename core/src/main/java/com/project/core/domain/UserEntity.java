@@ -26,6 +26,7 @@ public class UserEntity implements UserDetails {
     private Long id;
 
     @NotBlank
+    @Column(unique=true)
     private String username;
 
     @NotBlank
