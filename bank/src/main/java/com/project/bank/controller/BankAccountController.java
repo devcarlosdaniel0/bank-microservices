@@ -21,7 +21,7 @@ public class BankAccountController {
     private final BankAccountService bankAccountService;
 
     @PostMapping("create")
-    public ResponseEntity<BankAccount> createBankAccount(@RequestBody @Valid CreateBankAccountDTO createBankAccountDTO) {
+    public ResponseEntity<BankAccountResponseDTO> createBankAccount(@RequestBody @Valid CreateBankAccountDTO createBankAccountDTO) {
         return new ResponseEntity<>(bankAccountService.createBankAccount(createBankAccountDTO), HttpStatus.CREATED);
     }
 

@@ -84,7 +84,7 @@ class BankAccountServiceTest {
             when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
             // Act
-            BankAccount result = bankAccountService.createBankAccount(dto);
+            BankAccountResponseDTO result = bankAccountService.createBankAccount(dto);
 
             // Assert
             verify(bankAccountRepository).save(bankAccountArgumentCaptor.capture());
@@ -92,8 +92,9 @@ class BankAccountServiceTest {
 
             assertNotNull(result);
             assertEquals(bankAccount.getId(), result.getId());
-            assertEquals(bankAccount.getUser(), result.getUser());
             assertEquals(bankAccount.getBalance(), result.getBalance());
+            assertEquals(bankAccount.getUser().getId(), result.getUserId());
+            assertEquals(bankAccount.getUser().getUsername(), result.getAccountName());
 
             assertEquals(user, bankAccountCaptured.getUser());
             assertEquals(BigDecimal.ZERO, bankAccountCaptured.getBalance());
@@ -155,8 +156,9 @@ class BankAccountServiceTest {
             // Assert
             assertNotNull(result);
             assertEquals(1, result.size());
-            assertEquals(user.getId(), result.get(0).getUserId());
             assertEquals(bankAccount.getBalance(), result.get(0).getBalance());
+            assertEquals(user.getId(), result.get(0).getUserId());
+            assertEquals(user.getUsername(), result.get(0).getAccountName());
         }
     }
 }

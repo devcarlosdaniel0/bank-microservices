@@ -24,7 +24,7 @@ public class BankAccountService {
     private final ModelMapper modelMapper;
 
     @Transactional
-    public BankAccount createBankAccount(CreateBankAccountDTO dto) {
+    public BankAccountResponseDTO createBankAccount(CreateBankAccountDTO dto) {
         UserEntity user = userEntityRepository.findById(dto.userID())
                 .orElseThrow(() -> new UserIdNotFoundException("User ID not found"));
 
@@ -38,7 +38,9 @@ public class BankAccountService {
                 .user(user)
                 .build();
 
-        return bankAccountRepository.save(bankAccount);
+        bankAccountRepository.save(bankAccount);
+
+        return modelMapper.map(bankAccount, BankAccountResponseDTO.class);
     }
 
     public List<BankAccountResponseDTO> findAll() {
