@@ -1,9 +1,6 @@
 package com.project.bank.handler;
 
-import com.project.bank.exception.BankAccountIdNotFoundException;
-import com.project.bank.exception.InsufficientFundsException;
-import com.project.bank.exception.UserAlreadyHasBankAccountException;
-import com.project.bank.exception.UserIdNotFoundException;
+import com.project.bank.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +55,17 @@ public class BankExceptionHandler {
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
+    }
+
+    @ExceptionHandler(UnauthorizedUserException.class)
+    public ResponseEntity<ProblemDetail> handlerUnauthorizedUserException(
+            UnauthorizedUserException e) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        problemDetail.setTitle("The JWT token that you passed does not matches with the user ID that you want to create bank account!");
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
     }
 
     private String timeFormatted() {

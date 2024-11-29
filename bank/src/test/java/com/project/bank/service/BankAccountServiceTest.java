@@ -23,6 +23,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -44,6 +47,9 @@ class BankAccountServiceTest {
 
     @Mock
     private UserEntityRepository userEntityRepository;
+
+    @Mock
+    private Authentication authentication;
 
     @InjectMocks
     private BankAccountService bankAccountService;
@@ -76,6 +82,9 @@ class BankAccountServiceTest {
                             source.getAccountName()
                                         );
                 });
+
+        lenient().when(authentication.getDetails()).thenReturn(1L);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     @Nested
@@ -118,7 +127,7 @@ class BankAccountServiceTest {
             // Act & Assert
             UserIdNotFoundException exception = assertThrows(UserIdNotFoundException.class, () -> bankAccountService.createBankAccount(dto));
 
-            assertEquals("User ID not found", exception.getMessage());
+            assertEquals("User ID: " + dto.userId() + " not found", exception.getMessage());
             verify(userEntityRepository, times(1)).findById(dto.userId());
             verifyNoInteractions(bankAccountRepository);
         }
@@ -253,7 +262,7 @@ class BankAccountServiceTest {
             BankAccountIdNotFoundException e = assertThrows(BankAccountIdNotFoundException.class, () ->
                     bankAccountService.addBalance(updateBalanceDTO));
 
-            assertEquals("The bank account id was not found", e.getMessage());
+            assertEquals("The bank account id: " + updateBalanceDTO.accountId() + " was not found", e.getMessage());
             verify(bankAccountRepository, never()).save(any(BankAccount.class));
             verifyNoMoreInteractions(bankAccountRepository);
         }
