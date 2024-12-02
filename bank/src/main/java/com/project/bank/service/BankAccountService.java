@@ -81,7 +81,7 @@ public class BankAccountService {
                 : bankAccount.getBalance().subtract(updateBalanceDTO.value());
 
         if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InsufficientFundsException("Insufficient funds for the withdrawal");
+            throw new InsufficientFundsException("Insufficient funds for the withdrawal, you have: " + bankAccount.getBalance() + " you want to withdrawal: " + updateBalanceDTO.value());
         }
 
         bankAccount.setBalance(newBalance);
