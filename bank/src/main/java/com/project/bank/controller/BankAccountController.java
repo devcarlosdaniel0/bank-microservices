@@ -3,15 +3,13 @@ package com.project.bank.controller;
 import com.project.bank.dto.UpdateBalanceDTO;
 import com.project.bank.dto.BankAccountResponseDTO;
 import com.project.bank.dto.CreateBankAccountDTO;
+import com.project.bank.dto.UserFoundedDTO;
 import com.project.bank.service.BankAccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -39,4 +37,11 @@ public class BankAccountController {
     public ResponseEntity<List<BankAccountResponseDTO>> findAll() {
         return new ResponseEntity<>(bankAccountService.findAll(), HttpStatus.OK);
     }
+
+    @GetMapping("findUserIdByUsername/{username}")
+    public ResponseEntity<UserFoundedDTO> findUserIdByUsername(@PathVariable String username) {
+        UserFoundedDTO userFounded = bankAccountService.findUserIdByUsername(username);
+        return new ResponseEntity<>(userFounded, HttpStatus.OK);
+    }
+
 }

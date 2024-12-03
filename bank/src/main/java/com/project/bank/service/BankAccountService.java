@@ -3,6 +3,7 @@ package com.project.bank.service;
 import com.project.bank.dto.UpdateBalanceDTO;
 import com.project.bank.dto.BankAccountResponseDTO;
 import com.project.bank.dto.CreateBankAccountDTO;
+import com.project.bank.dto.UserFoundedDTO;
 import com.project.bank.exception.*;
 import com.project.core.domain.BankAccount;
 import com.project.core.domain.UserEntity;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,6 +103,13 @@ public class BankAccountService {
         return bankAccounts.stream()
                 .map(account -> modelMapper.map(account, BankAccountResponseDTO.class))
                 .toList();
+    }
+
+    public UserFoundedDTO findUserIdByUsername(String username) {
+        UserEntity user = userEntityRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Username: " + username + " not found"));
+
+        return new UserFoundedDTO(user.getId());
     }
 
     private BankAccount getBankAccountById(UUID accountId) {

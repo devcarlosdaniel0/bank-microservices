@@ -3,6 +3,7 @@ package com.project.bank.service;
 import com.project.bank.dto.BankAccountResponseDTO;
 import com.project.bank.dto.CreateBankAccountDTO;
 import com.project.bank.dto.UpdateBalanceDTO;
+import com.project.bank.dto.UserFoundedDTO;
 import com.project.bank.exception.BankAccountIdNotFoundException;
 import com.project.bank.exception.InsufficientFundsException;
 import com.project.bank.exception.UserAlreadyHasBankAccountException;
@@ -26,6 +27,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -242,7 +244,7 @@ class BankAccountServiceTest {
             InsufficientFundsException e = assertThrows(InsufficientFundsException.class, () ->
                     bankAccountService.withdrawalBalance(updateBalanceDTO));
 
-            assertEquals("Insufficient funds for the withdrawal", e.getMessage());
+            assertEquals("Insufficient funds for the withdrawal, you have: " + bankAccount.getBalance() + " you want to withdrawal: " + updateBalanceDTO.value(), e.getMessage());
             verify(bankAccountRepository, never()).save(any(BankAccount.class));
             verifyNoMoreInteractions(bankAccountRepository);
         }
@@ -265,6 +267,35 @@ class BankAccountServiceTest {
             assertEquals("The bank account id: " + updateBalanceDTO.accountId() + " was not found", e.getMessage());
             verify(bankAccountRepository, never()).save(any(BankAccount.class));
             verifyNoMoreInteractions(bankAccountRepository);
+        }
+    }
+
+    @Nested
+    class findUserIdByUsername {
+        @Test
+        @DisplayName("Should find user ID by username when user exists")
+        void shouldFindUserIdByUsernameWhenUserExists() {
+            // Arrange
+            when(userEntityRepository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
+
+            // Act
+            UserFoundedDTO userFoundedDTO = bankAccountService.findUserIdByUsername(user.getUsername());
+
+            // Assert
+            assertNotNull(userFoundedDTO);
+            assertEquals(user.getId(), userFoundedDTO.userId());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when user not exists")
+        void shouldThrowExceptionWhenUserNotExists() {
+            var username = "sadhuaiu";
+            when(userEntityRepository.findByUsername(username)).thenReturn(Optional.empty());
+
+            UsernameNotFoundException e = assertThrows(UsernameNotFoundException.class,
+                    () -> bankAccountService.findUserIdByUsername(username));
+
+            assertEquals("Username: " + username + " not found", e.getMessage());
         }
     }
 }
