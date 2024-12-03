@@ -1,7 +1,6 @@
 package com.project.bank.service;
 
 import com.project.bank.dto.BankAccountResponseDTO;
-import com.project.bank.dto.CreateBankAccountDTO;
 import com.project.bank.dto.UpdateBalanceDTO;
 import com.project.bank.dto.UserFoundedDTO;
 import com.project.bank.exception.BankAccountIdNotFoundException;
@@ -24,7 +23,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -59,13 +57,13 @@ class BankAccountServiceTest {
     @Captor
     private ArgumentCaptor<BankAccount> bankAccountArgumentCaptor;
 
-    private CreateBankAccountDTO dto;
+    private Long userIdFromToken;
     private UserEntity user;
     private BankAccount bankAccount;
 
     @BeforeEach
     void setUp() {
-        dto = new CreateBankAccountDTO(1L);
+        userIdFromToken = 1L;
         user = new UserEntity(1L, "carlos", "123", UserRole.USER, null);
         bankAccount = BankAccount.builder()
                 .id(UUID.randomUUID())
@@ -96,11 +94,11 @@ class BankAccountServiceTest {
         @DisplayName("Should create bank account when user exists and has no bank account")
         void shouldCreateBankAccountWhenUserExistsAndHasNoBankAccount() {
             // Arrange
-            when(userEntityRepository.findById(dto.userId())).thenReturn(Optional.of(user));
+            when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.of(user));
             when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
             // Act
-            BankAccountResponseDTO result = bankAccountService.createBankAccount(dto);
+            BankAccountResponseDTO result = bankAccountService.createBankAccount();
             result.setId(bankAccount.getId());
 
             // Assert
@@ -116,21 +114,22 @@ class BankAccountServiceTest {
             assertEquals(user, bankAccountCaptured.getUser());
             assertEquals(BigDecimal.ZERO, bankAccountCaptured.getBalance());
 
-            verify(userEntityRepository, times(1)).findById(dto.userId());
+            verify(userEntityRepository, times(1)).findById(userIdFromToken);
             verify(bankAccountRepository, times(1)).save(any(BankAccount.class));
         }
 
         @Test
-        @DisplayName("Should throw exception when user id is not found")
-        void shouldThrowExceptionWhenUserIdIsNotFound() {
+        @DisplayName("Should throw exception when user id from token is not found")
+        void shouldThrowExceptionWhenUserIdFromTokenIsNotFound() {
             // Arrange
-            when(userEntityRepository.findById(dto.userId())).thenReturn(Optional.empty());
+            when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.empty());
 
             // Act & Assert
-            UserIdNotFoundException exception = assertThrows(UserIdNotFoundException.class, () -> bankAccountService.createBankAccount(dto));
+            UserIdNotFoundException exception = assertThrows(UserIdNotFoundException.class,
+                    () -> bankAccountService.createBankAccount());
 
-            assertEquals("User ID: " + dto.userId() + " not found", exception.getMessage());
-            verify(userEntityRepository, times(1)).findById(dto.userId());
+            assertEquals("User ID: " + userIdFromToken + " not found", exception.getMessage());
+            verify(userEntityRepository, times(1)).findById(userIdFromToken);
             verifyNoInteractions(bankAccountRepository);
         }
 
@@ -140,22 +139,15 @@ class BankAccountServiceTest {
             // Arrange
             user.setBankAccount(bankAccount);
 
-            when(userEntityRepository.findById(dto.userId())).thenReturn(Optional.of(user));
+            when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.of(user));
 
             // Act & Assert
             UserAlreadyHasBankAccountException exception = assertThrows(UserAlreadyHasBankAccountException.class,
-                    () -> bankAccountService.createBankAccount(dto));
+                    () -> bankAccountService.createBankAccount());
 
             assertEquals("User already has a bank account", exception.getMessage());
-            verify(userEntityRepository, times(1)).findById(dto.userId());
+            verify(userEntityRepository, times(1)).findById(userIdFromToken);
             verifyNoInteractions(bankAccountRepository);
-        }
-
-        @Test
-        @DisplayName("Should throw exception when DTO is null")
-        void shouldThrowExceptionWhenDTOIsNull() {
-            // Act & Assert
-            assertThrows(NullPointerException.class, () -> bankAccountService.createBankAccount(null));
         }
     }
 

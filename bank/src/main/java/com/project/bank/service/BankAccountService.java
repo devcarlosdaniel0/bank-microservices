@@ -1,8 +1,7 @@
 package com.project.bank.service;
 
-import com.project.bank.dto.UpdateBalanceDTO;
 import com.project.bank.dto.BankAccountResponseDTO;
-import com.project.bank.dto.CreateBankAccountDTO;
+import com.project.bank.dto.UpdateBalanceDTO;
 import com.project.bank.dto.UserFoundedDTO;
 import com.project.bank.exception.*;
 import com.project.core.domain.BankAccount;
@@ -29,16 +28,15 @@ public class BankAccountService {
     private final ModelMapper modelMapper;
 
     @Transactional
-    public BankAccountResponseDTO createBankAccount(CreateBankAccountDTO dto) {
-        UserEntity user = userEntityRepository.findById(dto.userId())
-                .orElseThrow(() -> new UserIdNotFoundException("User ID: " + dto.userId() + " not found"));
+    public BankAccountResponseDTO createBankAccount() {
+        Long userIdFromToken = getUserIdFromToken();
+
+        UserEntity user = userEntityRepository.findById(userIdFromToken)
+                .orElseThrow(() -> new UserIdNotFoundException("User ID: " + userIdFromToken + " not found"));
 
         if (user.getBankAccount() != null) {
             throw new UserAlreadyHasBankAccountException("User already has a bank account");
         }
-
-        Long userIdFromToken = getUserIdFromToken();
-        verifyUserIdMatch(userIdFromToken, dto.userId());
 
         BankAccount bankAccount = BankAccount.builder()
                 .accountName(user.getUsername())
