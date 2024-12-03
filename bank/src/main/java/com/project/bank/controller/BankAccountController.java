@@ -1,9 +1,6 @@
 package com.project.bank.controller;
 
-import com.project.bank.dto.BankAccountResponseDTO;
-import com.project.bank.dto.TransferDTO;
-import com.project.bank.dto.UpdateBalanceDTO;
-import com.project.bank.dto.UserFoundedDTO;
+import com.project.bank.dto.*;
 import com.project.bank.service.BankAccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,9 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,4 +41,8 @@ public class BankAccountController {
         return new ResponseEntity<>(userFounded, HttpStatus.OK);
     }
 
+    @PostMapping("transfer")
+    public ResponseEntity<TransferResponseDTO> transfer(@RequestBody @Valid TransferDTO transferDTO) {
+        return new ResponseEntity<>(bankAccountService.transfer(transferDTO), HttpStatus.OK);
+    }
 }

@@ -53,7 +53,18 @@ public class BankExceptionHandler {
             InsufficientFundsException e) {
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
-        problemDetail.setTitle("The value you want to withdrawal it's bigger than you have!");
+        problemDetail.setTitle("The value you want to withdrawal or transfer it's bigger than you have!");
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
+    }
+
+    @ExceptionHandler(TransferNotAllowedException.class)
+    public ResponseEntity<ProblemDetail> handlerTransferNotAllowedException(
+            TransferNotAllowedException e) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+        problemDetail.setTitle("That transfer can not be allowed!");
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
