@@ -1,12 +1,7 @@
 package com.project.bank.service;
 
-import com.project.bank.dto.BankAccountResponseDTO;
-import com.project.bank.dto.UpdateBalanceDTO;
-import com.project.bank.dto.UserFoundedDTO;
-import com.project.bank.exception.BankAccountIdNotFoundException;
-import com.project.bank.exception.InsufficientFundsException;
-import com.project.bank.exception.UserAlreadyHasBankAccountException;
-import com.project.bank.exception.UserIdNotFoundException;
+import com.project.bank.dto.*;
+import com.project.bank.exception.*;
 import com.project.core.domain.BankAccount;
 import com.project.core.domain.UserEntity;
 import com.project.core.domain.UserRole;
@@ -17,6 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -290,4 +287,93 @@ class BankAccountServiceTest {
             assertEquals("Username: " + username + " not found", e.getMessage());
         }
     }
+
+    @Nested
+    class transfer {
+        @Test
+        @DisplayName("Should transfer successfully when the value its greater than zero and account has enough balance")
+        void shouldTransferSuccessfullyWhenTheValueItsGreaterThanZeroAndAccountHasEnoughBalance() {
+            // Arrange
+            when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.of(user));
+            user.setBankAccount(bankAccount);
+
+            BankAccount sender = user.getBankAccount();
+            sender.setBalance(BigDecimal.valueOf(10));
+
+            var receiver = new UserEntity(2L, "isaque", "123", UserRole.USER, null);
+            BankAccount receiverBankAccount = BankAccount.builder()
+                    .id(UUID.randomUUID())
+                    .accountName(receiver.getUsername())
+                    .balance(BigDecimal.ZERO)
+                    .user(receiver)
+                    .build();
+            receiver.setBankAccount(receiverBankAccount);
+
+            var transferValue = BigDecimal.valueOf(10);
+            var transferDTO = new TransferDTO(receiverBankAccount.getId(), transferValue);
+
+            when(bankAccountRepository.findById(transferDTO.receiverAccountId())).thenReturn(Optional.of(receiverBankAccount));
+
+            var expectedResponse = TransferResponseDTO.builder()
+                    .response(String.format("Your current balance is: %s and you transferred %s to account ID %s (%s)",
+                            sender.getBalance().subtract(transferValue), transferDTO.value(), receiverBankAccount.getId(),
+                            receiverBankAccount.getAccountName())).build();
+
+            // Act
+            TransferResponseDTO response = bankAccountService.transfer(transferDTO);
+
+            // Assert
+            assertNotNull(response);
+            assertEquals(expectedResponse, response);
+            assertEquals(BigDecimal.valueOf(0), sender.getBalance());
+            assertEquals(BigDecimal.valueOf(10), receiverBankAccount.getBalance());
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"0", "-1", "-10.5"})
+        @DisplayName("Should throw exception when transfer value its lower or equal than zero")
+        void shouldThrowExceptionWhenTransferValueItsLowerOrEqualThanZero(String value) {
+            // Arrange
+            var transferDTO = new TransferDTO(UUID.randomUUID(), new BigDecimal(value));
+
+            // Act & Assert
+            TransferNotAllowedException e = assertThrows(TransferNotAllowedException.class, () -> bankAccountService
+                    .transfer(transferDTO));
+
+            assertEquals("Transfer value must be greater than zero.", e.getMessage());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when bank account has insufficient founds")
+        void shouldThrowExceptionWhenBankAccountHasInsufficientFounds() {
+            // Arrange
+            when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.of(user));
+            user.setBankAccount(bankAccount);
+
+            BankAccount sender = user.getBankAccount();
+            sender.setBalance(BigDecimal.valueOf(5));
+
+            var receiver = new UserEntity(2L, "isaque", "123", UserRole.USER, null);
+            BankAccount receiverBankAccount = BankAccount.builder()
+                    .id(UUID.randomUUID())
+                    .accountName(receiver.getUsername())
+                    .balance(BigDecimal.ZERO)
+                    .user(receiver)
+                    .build();
+            receiver.setBankAccount(receiverBankAccount);
+
+            var transferValue = BigDecimal.valueOf(10);
+            var transferDTO = new TransferDTO(receiverBankAccount.getId(), transferValue);
+
+            when(bankAccountRepository.findById(transferDTO.receiverAccountId())).thenReturn(Optional.of(receiverBankAccount));
+
+            // Act & Assert
+            InsufficientFundsException e = assertThrows(InsufficientFundsException.class, () -> bankAccountService.transfer(transferDTO));
+
+            assertEquals("Insufficient funds. Current balance: " + sender.getBalance(), e.getMessage());
+            assertEquals(BigDecimal.valueOf(5), sender.getBalance());
+        }
+    }
+
+
 }
