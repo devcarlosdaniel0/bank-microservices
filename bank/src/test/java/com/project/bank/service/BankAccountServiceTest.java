@@ -174,10 +174,12 @@ class BankAccountServiceTest {
         @DisplayName("Should add balance when successfully")
         void shouldAddBalanceWhenSuccessfully() {
             // Arrange
-            var updateBalanceDTO = new UpdateBalanceDTO(bankAccount.getId(), BigDecimal.valueOf(100));
+            var updateBalanceDTO = new UpdateBalanceDTO(BigDecimal.valueOf(100));
 
-            when(bankAccountRepository.findById(updateBalanceDTO.accountId()))
-                    .thenReturn(Optional.of(bankAccount));
+            user.setBankAccount(bankAccount);
+
+            when(userEntityRepository.findById(userIdFromToken))
+                    .thenReturn(Optional.of(user));
             when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
             // Act
@@ -200,11 +202,13 @@ class BankAccountServiceTest {
         @DisplayName("Should withdrawal balance successfully when the value is not bigger than the actual balance")
         void shouldWithdrawalBalanceSuccessfullyWhenTheValueIsNotBiggerThenTheActualBalance() {
             // Arrange
-            var updateBalanceDTO = new UpdateBalanceDTO(bankAccount.getId(), BigDecimal.valueOf(100));
+            var updateBalanceDTO = new UpdateBalanceDTO(BigDecimal.valueOf(100));
             bankAccount.setBalance(BigDecimal.valueOf(100));
 
-            when(bankAccountRepository.findById(updateBalanceDTO.accountId()))
-                    .thenReturn(Optional.of(bankAccount));
+            user.setBankAccount(bankAccount);
+
+            when(userEntityRepository.findById(userIdFromToken))
+                    .thenReturn(Optional.of(user));
             when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
             // Act
@@ -224,16 +228,21 @@ class BankAccountServiceTest {
         @DisplayName("Should throw exception when the value it's bigger than the actual balance")
         void shouldThrowExceptionWhenTheValueItsBiggerThanTheActualBalance() {
             // Arrange
-            var updateBalanceDTO = new UpdateBalanceDTO(bankAccount.getId(), BigDecimal.valueOf(100));
+            var updateBalanceDTO = new UpdateBalanceDTO(BigDecimal.valueOf(100));
 
-            when(bankAccountRepository.findById(updateBalanceDTO.accountId()))
-                    .thenReturn(Optional.of(bankAccount));
+            user.setBankAccount(bankAccount);
+
+            when(userEntityRepository.findById(userIdFromToken))
+                    .thenReturn(Optional.of(user));
 
             // Act & Assert
             InsufficientFundsException e = assertThrows(InsufficientFundsException.class, () ->
                     bankAccountService.withdrawalBalance(updateBalanceDTO));
 
-            assertEquals("Insufficient funds for the withdrawal, you have: " + bankAccount.getBalance() + " you want to withdrawal: " + updateBalanceDTO.value(), e.getMessage());
+            assertEquals(String.format(
+                    "Insufficient funds. Current balance is %s, attempted withdrawal: %s",
+                    bankAccount.getBalance(), updateBalanceDTO.value()
+            ), e.getMessage());
             verify(bankAccountRepository, never()).save(any(BankAccount.class));
             verifyNoMoreInteractions(bankAccountRepository);
         }
@@ -242,20 +251,21 @@ class BankAccountServiceTest {
     @Nested
     class updateBalance {
         @Test
-        @DisplayName("Should throw exception when the bank account id it's not found")
-        void shouldThrowExceptionWhenTheBankAccountIdItsNotFound() {
+        @DisplayName("Should throw exception when user does not have a bank account")
+        void shouldThrowExceptionWhenUserDoesNotHaveBankAccount() {
             // Arrange
-            var updateBalanceDTO = new UpdateBalanceDTO(null, BigDecimal.valueOf(50));
+            user.setBankAccount(null);
+            var updateBalanceDTO = new UpdateBalanceDTO(BigDecimal.valueOf(50));
 
-            when(bankAccountRepository.findById(updateBalanceDTO.accountId())).thenReturn(Optional.empty());
+            when(userEntityRepository.findById(userIdFromToken))
+                    .thenReturn(Optional.of(user));
 
             // Act & Assert
-            BankAccountIdNotFoundException e = assertThrows(BankAccountIdNotFoundException.class, () ->
+            BankAccountNotFoundException e = assertThrows(BankAccountNotFoundException.class, () ->
                     bankAccountService.addBalance(updateBalanceDTO));
 
-            assertEquals("The bank account id: " + updateBalanceDTO.accountId() + " was not found", e.getMessage());
+            assertEquals("User does not have a bank account", e.getMessage());
             verify(bankAccountRepository, never()).save(any(BankAccount.class));
-            verifyNoMoreInteractions(bankAccountRepository);
         }
     }
 
@@ -402,7 +412,10 @@ class BankAccountServiceTest {
             // Act & Assert
             InsufficientFundsException e = assertThrows(InsufficientFundsException.class, () -> bankAccountService.transfer(transferDTO));
 
-            assertEquals("Insufficient funds. Current balance: " + sender.getBalance(), e.getMessage());
+            assertEquals(String.format(
+                    "Insufficient funds. Current balance is %s, attempted transfer: %s",
+                    sender.getBalance(), transferDTO.value()
+            ), e.getMessage());
             assertEquals(BigDecimal.valueOf(5), sender.getBalance());
         }
     }

@@ -29,8 +29,7 @@ public class BankAccountService {
     public BankAccountResponseDTO createBankAccount() {
         Long userIdFromToken = getUserIdFromToken();
 
-        UserEntity user = userEntityRepository.findById(userIdFromToken)
-                .orElseThrow(() -> new UserIdNotFoundException("User ID: " + userIdFromToken + " not found"));
+        UserEntity user = getUserByUserId(userIdFromToken);
 
         if (user.getBankAccount() != null) {
             throw new UserAlreadyHasBankAccountException("User already has a bank account");
@@ -48,27 +47,29 @@ public class BankAccountService {
     }
 
     @Transactional
-    public BankAccountResponseDTO addBalance(UpdateBalanceDTO updateBalanceDTO) {
-        BankAccount bankAccount = getBankAccountById(updateBalanceDTO.accountId());
+    public TransferResponseDTO transfer(TransferDTO transferDTO) {
+        if (transferDTO.value().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new TransferNotAllowedException("Transfer value must be greater than zero.");
+        }
 
-        Long userId = bankAccount.getUser().getId();
         Long userIdFromToken = getUserIdFromToken();
+        UserEntity userFromToken = getUserByUserId(userIdFromToken);
 
-        verifyUserIdMatch(userIdFromToken, userId);
+        BankAccount sender = userFromToken.getBankAccount();
+        BankAccount receiver = getBankAccountByAccountId(transferDTO.receiverAccountId());
 
-        return updateBalance(updateBalanceDTO, Operation.ADD);
-    }
+        if (sender.getBalance().compareTo(transferDTO.value()) < 0) {
+            throw new InsufficientFundsException(String.format(
+                    "Insufficient funds. Current balance is %s, attempted transfer: %s",
+                    sender.getBalance(), transferDTO.value()
+            ));
+        }
 
-    @Transactional
-    public BankAccountResponseDTO withdrawalBalance(UpdateBalanceDTO updateBalanceDTO) {
-        BankAccount bankAccount = getBankAccountById(updateBalanceDTO.accountId());
+        sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
+        receiver.setBalance(receiver.getBalance().add(transferDTO.value()));
 
-        Long userId = bankAccount.getUser().getId();
-        Long userIdFromToken = getUserIdFromToken();
-
-        verifyUserIdMatch(userIdFromToken, userId);
-
-        return updateBalance(updateBalanceDTO, Operation.SUBTRACT);
+        return TransferResponseDTO.builder().response(String.format("Your current balance is: %s and you transferred %s to account ID %s (%s)"
+                , sender.getBalance(), transferDTO.value(), receiver.getId(), receiver.getAccountName())).build();
     }
 
     public List<BankAccountResponseDTO> findAll() {
@@ -77,30 +78,6 @@ public class BankAccountService {
         return bankAccounts.stream()
                 .map(account -> modelMapper.map(account, BankAccountResponseDTO.class))
                 .toList();
-    }
-
-    @Transactional
-    public TransferResponseDTO transfer(TransferDTO transferDTO) {
-        if (transferDTO.value().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new TransferNotAllowedException("Transfer value must be greater than zero.");
-        }
-
-        Long userIdFromToken = getUserIdFromToken();
-        UserEntity userFromToken = userEntityRepository.findById(userIdFromToken)
-                .orElseThrow(() -> new UserIdNotFoundException("User ID: " + userIdFromToken + " not found"));
-
-        BankAccount sender = userFromToken.getBankAccount();
-        BankAccount receiver = getBankAccountById(transferDTO.receiverAccountId());
-
-        if (sender.getBalance().compareTo(transferDTO.value()) < 0) {
-            throw new InsufficientFundsException("Insufficient funds. Current balance: " + sender.getBalance());
-        }
-
-        sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
-        receiver.setBalance(receiver.getBalance().add(transferDTO.value()));
-
-        return TransferResponseDTO.builder().response(String.format("Your current balance is: %s and you transferred %s to account ID %s (%s)"
-                , sender.getBalance(), transferDTO.value(), receiver.getId(), receiver.getAccountName())).build();
     }
 
     public UserFoundedDTO findUserIdByUsername(String username) {
@@ -117,16 +94,36 @@ public class BankAccountService {
         return new BankAccountFoundedDTO(bankAccount.getId());
     }
 
-    private BankAccountResponseDTO updateBalance(UpdateBalanceDTO updateBalanceDTO, Operation operation) {
-        BankAccount bankAccount = getBankAccountById(updateBalanceDTO.accountId());
+    @Transactional
+    public BankAccountResponseDTO addBalance(UpdateBalanceDTO updateBalanceDTO) {
+        Long userIdFromToken = getUserIdFromToken();
 
+        UserEntity user = getUserByUserId(userIdFromToken);
+        BankAccount bankAccount = getBankAccountFromUser(user);
+
+        return updateBalance(bankAccount, updateBalanceDTO.value(), Operation.ADD);
+    }
+
+    @Transactional
+    public BankAccountResponseDTO withdrawalBalance(UpdateBalanceDTO updateBalanceDTO) {
+        Long userIdFromToken = getUserIdFromToken();
+
+        UserEntity user = getUserByUserId(userIdFromToken);
+        BankAccount bankAccount = getBankAccountFromUser(user);
+
+        return updateBalance(bankAccount, updateBalanceDTO.value(), Operation.SUBTRACT);
+    }
+
+    private BankAccountResponseDTO updateBalance(BankAccount bankAccount, BigDecimal value, Operation operation) {
         BigDecimal newBalance = operation == Operation.ADD
-                ? bankAccount.getBalance().add(updateBalanceDTO.value())
-                : bankAccount.getBalance().subtract(updateBalanceDTO.value());
+                ? bankAccount.getBalance().add(value)
+                : bankAccount.getBalance().subtract(value);
 
         if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InsufficientFundsException("Insufficient funds for the withdrawal, you have: " + bankAccount.getBalance() +
-                    " you want to withdrawal: " + updateBalanceDTO.value());
+            throw new InsufficientFundsException(String.format(
+                    "Insufficient funds. Current balance is %s, attempted withdrawal: %s",
+                    bankAccount.getBalance(), value
+            ));
         }
 
         bankAccount.setBalance(newBalance);
@@ -140,14 +137,28 @@ public class BankAccountService {
         ADD, SUBTRACT
     }
 
-    private BankAccount getBankAccountById(UUID accountId) {
+    private BankAccount getBankAccountByAccountId(UUID accountId) {
         return bankAccountRepository.findById(accountId)
                 .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account id: " + accountId + " was not found"));
     }
 
-    private Long getUserIdFromToken() {
+    protected Long getUserIdFromToken() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return (Long) authentication.getDetails();
+    }
+
+    protected UserEntity getUserByUserId(Long userIdFromToken) {
+        UserEntity user = userEntityRepository.findById(userIdFromToken)
+                .orElseThrow(() -> new UserIdNotFoundException("User ID: " + userIdFromToken + " not found"));
+        return user;
+    }
+
+    private BankAccount getBankAccountFromUser(UserEntity user) {
+        BankAccount bankAccount = user.getBankAccount();
+        if (bankAccount == null) {
+            throw new BankAccountNotFoundException("User does not have a bank account");
+        }
+        return bankAccount;
     }
 
     private void verifyUserIdMatch(Long userIdFromToken, Long userIdFromDto) {
