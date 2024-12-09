@@ -142,12 +142,12 @@ public class BankAccountService {
                 .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account id: " + accountId + " was not found"));
     }
 
-    protected Long getUserIdFromToken() {
+    private Long getUserIdFromToken() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return (Long) authentication.getDetails();
     }
 
-    protected UserEntity getUserByUserId(Long userIdFromToken) {
+    private UserEntity getUserByUserId(Long userIdFromToken) {
         UserEntity user = userEntityRepository.findById(userIdFromToken)
                 .orElseThrow(() -> new UserIdNotFoundException("User ID: " + userIdFromToken + " not found"));
         return user;
