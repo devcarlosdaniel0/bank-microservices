@@ -79,13 +79,6 @@ public class BankAccountService {
                 .toList();
     }
 
-    public UserFoundedDTO findUserIdByUsername(String username) {
-        UserEntity user = userEntityRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Username: " + username + " not found"));
-
-        return new UserFoundedDTO(user.getId());
-    }
-
     @Transactional
     public TransferResponseDTO transfer(TransferDTO transferDTO) {
         if (transferDTO.value().compareTo(BigDecimal.ZERO) <= 0) {
@@ -108,6 +101,20 @@ public class BankAccountService {
 
         return TransferResponseDTO.builder().response(String.format("Your current balance is: %s and you transferred %s to account ID %s (%s)"
                 , sender.getBalance(), transferDTO.value(), receiver.getId(), receiver.getAccountName())).build();
+    }
+
+    public UserFoundedDTO findUserIdByUsername(String username) {
+        UserEntity user = userEntityRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Username: " + username + " not found"));
+
+        return new UserFoundedDTO(user.getId());
+    }
+
+    public BankAccountFoundedDTO findBankAccountIdByAccountName(String accountName) {
+        BankAccount bankAccount = bankAccountRepository.findByAccountName(accountName)
+                .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account name: " + accountName + " was not found"));
+
+        return new BankAccountFoundedDTO(bankAccount.getId());
     }
 
     private BankAccountResponseDTO updateBalance(UpdateBalanceDTO updateBalanceDTO, Operation operation) {

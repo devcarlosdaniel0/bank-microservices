@@ -35,14 +35,20 @@ public class BankAccountController {
         return new ResponseEntity<>(bankAccountService.findAll(), HttpStatus.OK);
     }
 
+    @PostMapping("transfer")
+    public ResponseEntity<TransferResponseDTO> transfer(@RequestBody @Valid TransferDTO transferDTO) {
+        return new ResponseEntity<>(bankAccountService.transfer(transferDTO), HttpStatus.OK);
+    }
+
+    @GetMapping("findBankAccountIdByAccountName/{accountName}")
+    public ResponseEntity<BankAccountFoundedDTO> findBankAccountIdByAccountName(@PathVariable String accountName) {
+        BankAccountFoundedDTO bankAccountFounded = bankAccountService.findBankAccountIdByAccountName(accountName);
+        return new ResponseEntity<>(bankAccountFounded, HttpStatus.OK);
+    }
+
     @GetMapping("findUserIdByUsername/{username}")
     public ResponseEntity<UserFoundedDTO> findUserIdByUsername(@PathVariable String username) {
         UserFoundedDTO userFounded = bankAccountService.findUserIdByUsername(username);
         return new ResponseEntity<>(userFounded, HttpStatus.OK);
-    }
-
-    @PostMapping("transfer")
-    public ResponseEntity<TransferResponseDTO> transfer(@RequestBody @Valid TransferDTO transferDTO) {
-        return new ResponseEntity<>(bankAccountService.transfer(transferDTO), HttpStatus.OK);
     }
 }

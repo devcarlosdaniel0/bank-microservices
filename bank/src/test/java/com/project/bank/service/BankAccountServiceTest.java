@@ -289,6 +289,38 @@ class BankAccountServiceTest {
     }
 
     @Nested
+    class findBankAccountIdByAccountName {
+        @Test
+        @DisplayName("Should find bank account ID by account name when bank account exists")
+        void shouldFindBankAccountIdByAccountNameWhenBankAccountExists() {
+            // Arrange
+            when(bankAccountRepository.findByAccountName(bankAccount.getAccountName())).thenReturn(Optional.of(bankAccount));
+
+            // Act
+            BankAccountFoundedDTO bankAccountFoundedDTO = bankAccountService.findBankAccountIdByAccountName(bankAccount.getAccountName());
+
+            // Assert
+            assertNotNull(bankAccountFoundedDTO);
+            assertEquals(bankAccount.getId(), bankAccountFoundedDTO.accountId());
+            assertEquals("carlos", bankAccount.getAccountName());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when bank account not exists")
+        void shouldThrowExceptionWhenBankAccountNotExists() {
+            // Arrange
+            var accountName = "sadhuaiu";
+            when(bankAccountRepository.findByAccountName(accountName)).thenReturn(Optional.empty());
+
+            // Act & Assert
+            BankAccountIdNotFoundException e = assertThrows(BankAccountIdNotFoundException.class,
+                    () -> bankAccountService.findBankAccountIdByAccountName(accountName));
+
+            assertEquals("The bank account name: " + accountName + " was not found", e.getMessage());
+        }
+    }
+
+    @Nested
     class transfer {
         @Test
         @DisplayName("Should transfer successfully when the value its greater than zero and account has enough balance")
@@ -374,6 +406,5 @@ class BankAccountServiceTest {
             assertEquals(BigDecimal.valueOf(5), sender.getBalance());
         }
     }
-
 
 }
