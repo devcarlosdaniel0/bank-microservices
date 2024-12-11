@@ -5,12 +5,13 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.project.auth.security.exception.ErrorWhileGeneratingTokenJwtException;
+import com.project.auth.security.exception.InvalidOrExpiredTokenException;
 import com.project.core.domain.UserEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
@@ -30,7 +31,7 @@ public class TokenService {
                     .withExpiresAt(generateExpirationTime())
                     .sign(algorithm);
         } catch (JWTCreationException e) {
-            throw new RuntimeException("Error while generating token JWT");
+            throw new ErrorWhileGeneratingTokenJwtException("Error while generating token JWT");
         }
     }
 
@@ -42,7 +43,7 @@ public class TokenService {
                     .build()
                     .verify(token);
         } catch (JWTVerificationException e) {
-            throw new RuntimeException("Invalid or expired token");
+            throw new InvalidOrExpiredTokenException("Invalid or expired token");
         }
     }
 

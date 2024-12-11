@@ -1,6 +1,8 @@
 package com.project.auth.security.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.project.auth.security.exception.EmailNotFoundException;
+import com.project.auth.security.exception.InvalidOrExpiredTokenException;
 import com.project.core.repository.UserEntityRepository;
 import com.project.auth.security.service.TokenService;
 import com.project.core.domain.UserEntity;
@@ -32,7 +34,7 @@ public class SecurityFilter extends OncePerRequestFilter {
             Long userId = decodedToken.getClaim("userId").asLong();
 
             UserEntity user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Email not found"));
+                    .orElseThrow(() -> new EmailNotFoundException("Email not found"));
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());

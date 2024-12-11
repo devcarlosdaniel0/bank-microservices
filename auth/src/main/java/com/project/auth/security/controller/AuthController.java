@@ -1,7 +1,10 @@
 package com.project.auth.security.controller;
 
 import com.project.auth.security.dto.LoginDTO;
+import com.project.auth.security.dto.MessageResponseDTO;
 import com.project.auth.security.dto.RegisterDTO;
+import com.project.auth.security.dto.TokenResponseDTO;
+import com.project.auth.security.exception.EmailAlreadyExistsException;
 import com.project.core.domain.UserEntity;
 import com.project.core.repository.UserEntityRepository;
 import com.project.auth.security.service.TokenService;
@@ -28,7 +31,7 @@ public class AuthController {
 
     @Transactional
     @PostMapping("login")
-    public ResponseEntity<String> login(@RequestBody @Valid LoginDTO loginDTO) {
+    public ResponseEntity<TokenResponseDTO> login(@RequestBody @Valid LoginDTO loginDTO) {
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.password());
 
@@ -36,14 +39,14 @@ public class AuthController {
 
         String token = tokenService.generateToken((UserEntity) auth.getPrincipal());
 
-        return new ResponseEntity<>(token, HttpStatus.OK);
+        return new ResponseEntity<>(new TokenResponseDTO(token), HttpStatus.OK);
     }
 
     @Transactional
     @PostMapping("register")
-    public ResponseEntity<String> register(@RequestBody @Valid RegisterDTO registerDTO) {
+    public ResponseEntity<MessageResponseDTO> register(@RequestBody @Valid RegisterDTO registerDTO) {
         if (userEntityRepository.findByEmail(registerDTO.email()).isPresent()) {
-            return new ResponseEntity<>("Email already exists!", HttpStatus.BAD_REQUEST);
+            throw new EmailAlreadyExistsException("Email already exists!");
         }
 
         UserEntity userToBeSaved = UserEntity.builder()
@@ -55,6 +58,6 @@ public class AuthController {
 
         userEntityRepository.save(userToBeSaved);
 
-        return new ResponseEntity<>("Register success!", HttpStatus.CREATED);
+        return new ResponseEntity<>(new MessageResponseDTO("Register success!"), HttpStatus.CREATED);
     }
 }
