@@ -30,7 +30,6 @@ public class SecurityFilter extends OncePerRequestFilter {
             DecodedJWT decodedToken = tokenService.validateToken(token);
             String email = decodedToken.getSubject();
             Long userId = decodedToken.getClaim("userId").asLong();
-            String username = decodedToken.getClaim("username").asString();
 
             UserEntity user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Email not found"));
