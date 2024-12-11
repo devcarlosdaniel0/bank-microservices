@@ -1,5 +1,6 @@
 package com.project.bank.handler;
 
+import com.project.auth.security.exception.EmailNotFoundException;
 import com.project.bank.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -82,7 +83,7 @@ public class BankExceptionHandler {
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<ProblemDetail> handleUsernameNotFoundException(UsernameNotFoundException e) {
+    public ResponseEntity<ProblemDetail> handlerUsernameNotFoundException(UsernameNotFoundException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
         problemDetail.setTitle("The username that you passed was not found");
         problemDetail.setProperty("timeStamp", timeFormatted());
@@ -91,7 +92,7 @@ public class BankExceptionHandler {
     }
 
     @ExceptionHandler(BankAccountNotFoundException.class)
-    public ResponseEntity<ProblemDetail> handleBankAccountNotFoundException(BankAccountNotFoundException e) {
+    public ResponseEntity<ProblemDetail> handlerBankAccountNotFoundException(BankAccountNotFoundException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
         problemDetail.setTitle("The bank account was not founded");
         problemDetail.setProperty("timeStamp", timeFormatted());
@@ -99,8 +100,17 @@ public class BankExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
     }
 
+    @ExceptionHandler(EmailNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handlerEmailNotFoundException(EmailNotFoundException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        problemDetail.setTitle("The receiver account email was not founded");
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    public ProblemDetail handlerMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         var fieldErrors = e.getFieldErrors()
                 .stream()
                 .map(f -> new InvalidParam(f.getField(), f.getDefaultMessage()))

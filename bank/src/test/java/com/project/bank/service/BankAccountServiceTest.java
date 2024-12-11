@@ -326,9 +326,9 @@ class BankAccountServiceTest {
             receiver.setBankAccount(receiverBankAccount);
 
             var transferValue = BigDecimal.valueOf(10);
-            var transferDTO = new TransferDTO(receiverBankAccount.getId(), transferValue);
+            var transferDTO = new TransferDTO(receiverBankAccount.getAccountEmail(), transferValue);
 
-            when(bankAccountRepository.findById(transferDTO.receiverAccountId())).thenReturn(Optional.of(receiverBankAccount));
+            when(bankAccountRepository.findByAccountEmail(transferDTO.receiverAccountEmail())).thenReturn(Optional.of(receiverBankAccount));
 
             var expectedResponse = TransferResponseDTO.builder()
                     .response(String.format("Your current balance is: %s and you transferred %s to account ID %s (%s | %s)",
@@ -350,7 +350,7 @@ class BankAccountServiceTest {
         @DisplayName("Should throw exception when transfer value its lower or equal than zero")
         void shouldThrowExceptionWhenTransferValueItsLowerOrEqualThanZero(String value) {
             // Arrange
-            var transferDTO = new TransferDTO(UUID.randomUUID(), new BigDecimal(value));
+            var transferDTO = new TransferDTO(null, new BigDecimal(value));
 
             // Act & Assert
             TransferNotAllowedException e = assertThrows(TransferNotAllowedException.class, () -> bankAccountService
@@ -372,9 +372,9 @@ class BankAccountServiceTest {
             receiver.setBankAccount(receiverBankAccount);
 
             var transferValue = BigDecimal.valueOf(10);
-            var transferDTO = new TransferDTO(receiverBankAccount.getId(), transferValue);
+            var transferDTO = new TransferDTO(receiverBankAccount.getAccountEmail(), transferValue);
 
-            when(bankAccountRepository.findById(transferDTO.receiverAccountId())).thenReturn(Optional.of(receiverBankAccount));
+            when(bankAccountRepository.findByAccountEmail(transferDTO.receiverAccountEmail())).thenReturn(Optional.of(receiverBankAccount));
 
             // Act & Assert
             InsufficientFundsException e = assertThrows(InsufficientFundsException.class, () -> bankAccountService.transfer(transferDTO));
@@ -386,5 +386,4 @@ class BankAccountServiceTest {
             assertEquals(BigDecimal.valueOf(5), sender.getBalance());
         }
     }
-
 }

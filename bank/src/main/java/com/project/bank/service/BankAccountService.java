@@ -1,5 +1,6 @@
 package com.project.bank.service;
 
+import com.project.auth.security.exception.EmailNotFoundException;
 import com.project.bank.dto.*;
 import com.project.bank.exception.*;
 import com.project.core.domain.BankAccount;
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -55,8 +55,9 @@ public class BankAccountService {
         Long userIdFromToken = getUserIdFromToken();
         UserEntity userFromToken = getUserByUserId(userIdFromToken);
 
-        BankAccount sender = userFromToken.getBankAccount();
-        BankAccount receiver = getBankAccountByAccountId(transferDTO.receiverAccountId());
+        BankAccount sender = getBankAccountFromUser(userFromToken);
+        BankAccount receiver = bankAccountRepository.findByAccountEmail(transferDTO.receiverAccountEmail())
+                .orElseThrow(() -> new EmailNotFoundException(String.format("Email: %s was not found", transferDTO.receiverAccountEmail())));
 
         if (sender.getBalance().compareTo(transferDTO.value()) < 0) {
             throw new InsufficientFundsException(String.format(
@@ -128,11 +129,6 @@ public class BankAccountService {
 
     private enum Operation {
         ADD, SUBTRACT
-    }
-
-    private BankAccount getBankAccountByAccountId(UUID accountId) {
-        return bankAccountRepository.findById(accountId)
-                .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account id: " + accountId + " was not found"));
     }
 
     private Long getUserIdFromToken() {
