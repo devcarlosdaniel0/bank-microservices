@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +35,7 @@ public class BankAccountService {
         }
 
         BankAccount bankAccount = BankAccount.builder()
+                .accountEmail(user.getEmail())
                 .accountName(user.getUsername())
                 .balance(BigDecimal.ZERO)
                 .user(user)
@@ -68,8 +68,8 @@ public class BankAccountService {
         sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
         receiver.setBalance(receiver.getBalance().add(transferDTO.value()));
 
-        return TransferResponseDTO.builder().response(String.format("Your current balance is: %s and you transferred %s to account ID %s (%s)"
-                , sender.getBalance(), transferDTO.value(), receiver.getId(), receiver.getAccountName())).build();
+        return TransferResponseDTO.builder().response(String.format("Your current balance is: %s and you transferred %s to account ID %s (%s | %s)"
+                , sender.getBalance(), transferDTO.value(), receiver.getId(), receiver.getAccountName(), receiver.getAccountEmail())).build();
     }
 
     public List<BankAccountResponseDTO> findAll() {
@@ -80,16 +80,9 @@ public class BankAccountService {
                 .toList();
     }
 
-    public UserFoundedDTO findUserIdByUsername(String username) {
-        UserEntity user = userEntityRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Username: " + username + " not found"));
-
-        return new UserFoundedDTO(user.getId());
-    }
-
-    public BankAccountFoundedDTO findBankAccountIdByAccountName(String accountName) {
-        BankAccount bankAccount = bankAccountRepository.findByAccountName(accountName)
-                .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account name: " + accountName + " was not found"));
+    public BankAccountFoundedDTO findBankAccountIdByAccountEmail(String accountEmail) {
+        BankAccount bankAccount = bankAccountRepository.findByAccountEmail(accountEmail)
+                .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account email: " + accountEmail + " was not found"));
 
         return new BankAccountFoundedDTO(bankAccount.getId());
     }
@@ -148,9 +141,8 @@ public class BankAccountService {
     }
 
     private UserEntity getUserByUserId(Long userIdFromToken) {
-        UserEntity user = userEntityRepository.findById(userIdFromToken)
+        return userEntityRepository.findById(userIdFromToken)
                 .orElseThrow(() -> new UserIdNotFoundException("User ID: " + userIdFromToken + " not found"));
-        return user;
     }
 
     private BankAccount getBankAccountFromUser(UserEntity user) {
@@ -159,12 +151,5 @@ public class BankAccountService {
             throw new BankAccountNotFoundException("User does not have a bank account");
         }
         return bankAccount;
-    }
-
-    private void verifyUserIdMatch(Long userIdFromToken, Long userIdFromDto) {
-        if (!userIdFromToken.equals(userIdFromDto)) {
-            throw new UnauthorizedUserException("The user ID in the token does not match the requested user ID, userIdFromToken: "
-                    + userIdFromToken + " userIdFromDto: " + userIdFromDto);
-        }
     }
 }

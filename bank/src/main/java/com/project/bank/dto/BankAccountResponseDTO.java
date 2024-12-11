@@ -16,5 +16,6 @@ public class BankAccountResponseDTO {
     private UUID id;
     private BigDecimal balance;
     private Long userId;
+    private String email;
     private String accountName;
 }

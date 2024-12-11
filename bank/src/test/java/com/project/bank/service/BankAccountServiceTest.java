@@ -22,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -57,16 +56,27 @@ class BankAccountServiceTest {
     private Long userIdFromToken;
     private UserEntity user;
     private BankAccount bankAccount;
+    private UserEntity receiver;
+    private BankAccount receiverBankAccount;
 
     @BeforeEach
     void setUp() {
         userIdFromToken = 1L;
-        user = new UserEntity(1L, "carlos", "123", UserRole.USER, null);
+        user = new UserEntity(1L, "carlos@gmail.com", "carlos", "123", UserRole.USER, null);
         bankAccount = BankAccount.builder()
                 .id(UUID.randomUUID())
                 .accountName(user.getUsername())
                 .balance(BigDecimal.ZERO)
                 .user(user)
+                .build();
+
+        receiver = new UserEntity(2L, "isaque@gmail.com", "isaque", "123", UserRole.USER, null);
+        receiverBankAccount = BankAccount.builder()
+                .id(UUID.randomUUID())
+                .accountEmail(receiver.getEmail())
+                .accountName(receiver.getUsername())
+                .balance(BigDecimal.ZERO)
+                .user(receiver)
                 .build();
 
         lenient().when(modelMapper.map(any(BankAccount.class), eq(BankAccountResponseDTO.class)))
@@ -76,6 +86,7 @@ class BankAccountServiceTest {
                                                 source.getId(),
                             source.getBalance(),
                             source.getUser().getId(),
+                            source.getAccountEmail(),
                             source.getAccountName()
                                         );
                 });
@@ -270,63 +281,33 @@ class BankAccountServiceTest {
     }
 
     @Nested
-    class findUserIdByUsername {
+    class findBankAccountIdByAccountEmail {
         @Test
-        @DisplayName("Should find user ID by username when user exists")
-        void shouldFindUserIdByUsernameWhenUserExists() {
+        @DisplayName("Should find bank account ID by account email when bank account exists")
+        void shouldFindBankAccountIdByAccountEmailWhenBankAccountExists() {
             // Arrange
-            when(userEntityRepository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
+            when(bankAccountRepository.findByAccountEmail(bankAccount.getAccountEmail())).thenReturn(Optional.of(bankAccount));
 
             // Act
-            UserFoundedDTO userFoundedDTO = bankAccountService.findUserIdByUsername(user.getUsername());
-
-            // Assert
-            assertNotNull(userFoundedDTO);
-            assertEquals(user.getId(), userFoundedDTO.userId());
-        }
-
-        @Test
-        @DisplayName("Should throw exception when user not exists")
-        void shouldThrowExceptionWhenUserNotExists() {
-            var username = "sadhuaiu";
-            when(userEntityRepository.findByUsername(username)).thenReturn(Optional.empty());
-
-            UsernameNotFoundException e = assertThrows(UsernameNotFoundException.class,
-                    () -> bankAccountService.findUserIdByUsername(username));
-
-            assertEquals("Username: " + username + " not found", e.getMessage());
-        }
-    }
-
-    @Nested
-    class findBankAccountIdByAccountName {
-        @Test
-        @DisplayName("Should find bank account ID by account name when bank account exists")
-        void shouldFindBankAccountIdByAccountNameWhenBankAccountExists() {
-            // Arrange
-            when(bankAccountRepository.findByAccountName(bankAccount.getAccountName())).thenReturn(Optional.of(bankAccount));
-
-            // Act
-            BankAccountFoundedDTO bankAccountFoundedDTO = bankAccountService.findBankAccountIdByAccountName(bankAccount.getAccountName());
+            BankAccountFoundedDTO bankAccountFoundedDTO = bankAccountService.findBankAccountIdByAccountEmail(bankAccount.getAccountEmail());
 
             // Assert
             assertNotNull(bankAccountFoundedDTO);
             assertEquals(bankAccount.getId(), bankAccountFoundedDTO.accountId());
-            assertEquals("carlos", bankAccount.getAccountName());
         }
 
         @Test
         @DisplayName("Should throw exception when bank account not exists")
         void shouldThrowExceptionWhenBankAccountNotExists() {
             // Arrange
-            var accountName = "sadhuaiu";
-            when(bankAccountRepository.findByAccountName(accountName)).thenReturn(Optional.empty());
+            var accountEmail = "sadhuaiu@gmail.com";
+            when(bankAccountRepository.findByAccountEmail(accountEmail)).thenReturn(Optional.empty());
 
             // Act & Assert
             BankAccountIdNotFoundException e = assertThrows(BankAccountIdNotFoundException.class,
-                    () -> bankAccountService.findBankAccountIdByAccountName(accountName));
+                    () -> bankAccountService.findBankAccountIdByAccountEmail(accountEmail));
 
-            assertEquals("The bank account name: " + accountName + " was not found", e.getMessage());
+            assertEquals("The bank account email: " + accountEmail + " was not found", e.getMessage());
         }
     }
 
@@ -342,13 +323,6 @@ class BankAccountServiceTest {
             BankAccount sender = user.getBankAccount();
             sender.setBalance(BigDecimal.valueOf(10));
 
-            var receiver = new UserEntity(2L, "isaque", "123", UserRole.USER, null);
-            BankAccount receiverBankAccount = BankAccount.builder()
-                    .id(UUID.randomUUID())
-                    .accountName(receiver.getUsername())
-                    .balance(BigDecimal.ZERO)
-                    .user(receiver)
-                    .build();
             receiver.setBankAccount(receiverBankAccount);
 
             var transferValue = BigDecimal.valueOf(10);
@@ -357,9 +331,9 @@ class BankAccountServiceTest {
             when(bankAccountRepository.findById(transferDTO.receiverAccountId())).thenReturn(Optional.of(receiverBankAccount));
 
             var expectedResponse = TransferResponseDTO.builder()
-                    .response(String.format("Your current balance is: %s and you transferred %s to account ID %s (%s)",
+                    .response(String.format("Your current balance is: %s and you transferred %s to account ID %s (%s | %s)",
                             sender.getBalance().subtract(transferValue), transferDTO.value(), receiverBankAccount.getId(),
-                            receiverBankAccount.getAccountName())).build();
+                            receiverBankAccount.getAccountName(), receiverBankAccount.getAccountEmail())).build();
 
             // Act
             TransferResponseDTO response = bankAccountService.transfer(transferDTO);
@@ -395,13 +369,6 @@ class BankAccountServiceTest {
             BankAccount sender = user.getBankAccount();
             sender.setBalance(BigDecimal.valueOf(5));
 
-            var receiver = new UserEntity(2L, "isaque", "123", UserRole.USER, null);
-            BankAccount receiverBankAccount = BankAccount.builder()
-                    .id(UUID.randomUUID())
-                    .accountName(receiver.getUsername())
-                    .balance(BigDecimal.ZERO)
-                    .user(receiver)
-                    .build();
             receiver.setBankAccount(receiverBankAccount);
 
             var transferValue = BigDecimal.valueOf(10);

@@ -30,7 +30,7 @@ public class AuthController {
     @PostMapping("login")
     public ResponseEntity<String> login(@RequestBody @Valid LoginDTO loginDTO) {
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(loginDTO.username(), loginDTO.password());
+                new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.password());
 
         Authentication auth = authenticationManager.authenticate(authentication);
 
@@ -42,11 +42,12 @@ public class AuthController {
     @Transactional
     @PostMapping("register")
     public ResponseEntity<String> register(@RequestBody @Valid RegisterDTO registerDTO) {
-        if (userEntityRepository.findByUsername(registerDTO.username()).isPresent()) {
-            return new ResponseEntity<>("Username already exists!", HttpStatus.BAD_REQUEST);
+        if (userEntityRepository.findByEmail(registerDTO.email()).isPresent()) {
+            return new ResponseEntity<>("Email already exists!", HttpStatus.BAD_REQUEST);
         }
 
         UserEntity userToBeSaved = UserEntity.builder()
+                .email(registerDTO.email())
                 .username(registerDTO.username())
                 .password(passwordEncoder.encode(registerDTO.password()))
                 .roles(registerDTO.role())

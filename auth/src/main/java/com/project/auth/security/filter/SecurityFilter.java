@@ -28,11 +28,12 @@ public class SecurityFilter extends OncePerRequestFilter {
         String token = this.recoverToken(request);
         if (token != null) {
             DecodedJWT decodedToken = tokenService.validateToken(token);
-            String username = decodedToken.getSubject();
+            String email = decodedToken.getSubject();
             Long userId = decodedToken.getClaim("userId").asLong();
+            String username = decodedToken.getClaim("username").asString();
 
-            UserEntity user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("Username not found"));
+            UserEntity user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Email not found"));
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
