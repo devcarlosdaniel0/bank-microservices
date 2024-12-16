@@ -17,6 +17,7 @@
         <module>gateway</module>
         <module>auth</module>
         <module>core</module>
+        <module>mail</module>
     </modules>
 
     <groupId>com.project</groupId>
