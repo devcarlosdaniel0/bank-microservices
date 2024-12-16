@@ -65,6 +65,7 @@ class BankAccountServiceTest {
         user = new UserEntity(1L, "carlos@gmail.com", "carlos", "123", UserRole.USER, null);
         bankAccount = BankAccount.builder()
                 .id(UUID.randomUUID())
+                .accountEmail(user.getEmail())
                 .accountName(user.getUsername())
                 .balance(BigDecimal.ZERO)
                 .user(user)
@@ -384,6 +385,28 @@ class BankAccountServiceTest {
                     sender.getBalance(), transferDTO.value()
             ), e.getMessage());
             assertEquals(BigDecimal.valueOf(5), sender.getBalance());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when trying to transfer to own account")
+        void shouldThrowExceptionWhenTryingToTransferToOwnAccount() {
+            // Arrange
+            when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.of(user));
+            user.setBankAccount(bankAccount);
+
+            BankAccount sender = user.getBankAccount();
+            sender.setBalance(BigDecimal.valueOf(10));
+
+            var transferValue = BigDecimal.valueOf(5);
+            var transferDTO = new TransferDTO(sender.getAccountEmail(), transferValue);
+
+            when(bankAccountRepository.findByAccountEmail(transferDTO.receiverAccountEmail())).thenReturn(Optional.of(sender));
+
+            // Act & Assert
+            TransferNotAllowedException e = assertThrows(TransferNotAllowedException.class,
+                    () -> bankAccountService.transfer(transferDTO));
+
+            assertEquals("You cant transfer to your own bank account", e.getMessage());
         }
     }
 }

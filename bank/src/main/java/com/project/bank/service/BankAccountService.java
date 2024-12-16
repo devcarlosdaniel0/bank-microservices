@@ -59,6 +59,10 @@ public class BankAccountService {
         BankAccount receiver = bankAccountRepository.findByAccountEmail(transferDTO.receiverAccountEmail())
                 .orElseThrow(() -> new EmailNotFoundException(String.format("Email: %s was not found", transferDTO.receiverAccountEmail())));
 
+        if (transferDTO.receiverAccountEmail().equalsIgnoreCase(sender.getAccountEmail())) {
+            throw new TransferNotAllowedException("You cant transfer to your own bank account");
+        }
+
         if (sender.getBalance().compareTo(transferDTO.value()) < 0) {
             throw new InsufficientFundsException(String.format(
                     "Insufficient funds. Current balance is %s, attempted transfer: %s",
