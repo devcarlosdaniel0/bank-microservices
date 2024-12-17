@@ -42,6 +42,10 @@ public class UserEntity implements UserDetails {
     @ToString.Exclude
     private BankAccount bankAccount;
 
+    private String confirmationToken;
+
+    private boolean isConfirmed = false;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if (this.roles == UserRole.ADMIN) {
