@@ -20,19 +20,20 @@
 		<auth-project.version>0.0.1-SNAPSHOT</auth-project.version>
 		<core-project.version>1.0-SNAPSHOT</core-project.version>
 		<model-mapper.version>2.4.4</model-mapper.version>
+		<swagger.version>2.6.0</swagger.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
-			<version>2.6.0</version>
+			<version>${swagger.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.6.0</version>
+			<version>${swagger.version}</version>
 		</dependency>
 
 		<dependency>
