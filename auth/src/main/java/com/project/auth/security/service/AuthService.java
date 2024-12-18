@@ -9,6 +9,7 @@ import com.project.auth.security.exception.EmailAlreadyExistsException;
 import com.project.core.domain.UserEntity;
 import com.project.core.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserEntityRepository userEntityRepository;
@@ -53,8 +55,10 @@ public class AuthService {
                 .confirmationToken(UUID.randomUUID().toString())
                 .build();
 
+        log.info("Saving user to be saved");
         userEntityRepository.save(userToBeSaved);
 
+        log.info("Calling method send confirmation email");
         sendConfirmationEmail(userToBeSaved);
 
         return new MessageResponseDTO("Register success! Please check your email to confirm your account");
@@ -68,6 +72,7 @@ public class AuthService {
         user.setConfirmed(true);
         user.setConfirmationToken(null);
         userEntityRepository.save(user);
+        log.info("Email confirmed successfully");
 
         return new MessageResponseDTO("Your account it's confirmed, enjoy!");
     }
@@ -76,6 +81,8 @@ public class AuthService {
         String subject = "E-mail confirmation from Bank Project";
         String body = "Click on the link to confirm your e-mail: " +
                 "http://localhost:8081/confirm?token=" + user.getConfirmationToken();
+
+        log.info("Sending email confirmation to: {}", user.getEmail());
         emailClient.sendEmail(user.getEmail(), subject, body);
     }
 }
