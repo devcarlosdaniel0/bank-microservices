@@ -62,7 +62,7 @@ class BankAccountServiceTest {
     @BeforeEach
     void setUp() {
         userIdFromToken = 1L;
-        user = new UserEntity(1L, "carlos@gmail.com", "carlos", "123", UserRole.USER, null);
+        user = new UserEntity(1L, "carlos@gmail.com", "carlos", "123", UserRole.USER, null, null, true);
         bankAccount = BankAccount.builder()
                 .id(UUID.randomUUID())
                 .accountEmail(user.getEmail())
@@ -71,7 +71,7 @@ class BankAccountServiceTest {
                 .user(user)
                 .build();
 
-        receiver = new UserEntity(2L, "isaque@gmail.com", "isaque", "123", UserRole.USER, null);
+        receiver = new UserEntity(2L, "isaque@gmail.com", "isaque", "123", UserRole.USER, null, null, true);
         receiverBankAccount = BankAccount.builder()
                 .id(UUID.randomUUID())
                 .accountEmail(receiver.getEmail())
