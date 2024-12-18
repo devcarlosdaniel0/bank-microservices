@@ -28,6 +28,6 @@ public class AuthController {
 
     @GetMapping("confirm")
     public ResponseEntity<MessageResponseDTO> confirmEmail(@RequestParam String token) {
-        return ResponseEntity.ok(authService.confirmEmail(token));
+        return new ResponseEntity<>(authService.confirmEmail(token), HttpStatus.OK);
     }
 }
