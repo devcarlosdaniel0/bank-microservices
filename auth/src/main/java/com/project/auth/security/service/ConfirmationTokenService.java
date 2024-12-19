@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -25,10 +26,11 @@ public class ConfirmationTokenService {
 
     @Transactional
     public void createAndAssignConfirmationToken(UserEntity user) {
+        final int EXPIRATION_TIME = 5;
         String confirmationToken = UUID.randomUUID().toString();
 
         user.setConfirmationToken(confirmationToken);
-        user.setConfirmationTokenExpiration(LocalDateTime.now().plusMinutes(1));
+        user.setConfirmationTokenExpiration(LocalDateTime.now().plusMinutes(EXPIRATION_TIME));
 
         log.info("Creating & assigning confirmation token to user: {}", user.getEmail());
         userEntityRepository.save(user);
@@ -75,4 +77,16 @@ public class ConfirmationTokenService {
         log.info("Sending email confirmation to: {}", user.getEmail());
         emailClient.sendEmail(user.getEmail(), subject, body);
     }
+
+    @Transactional
+    public void deleteUnconfirmedUsers() {
+        List<UserEntity> unconfirmedUsers = userEntityRepository.
+                findAllByIsConfirmedFalseAndConfirmationTokenExpirationBefore(LocalDateTime.now());
+
+        if (!unconfirmedUsers.isEmpty()) {
+            log.info("Deleting {} unconfirmed users...", unconfirmedUsers.size());
+            userEntityRepository.deleteAll(unconfirmedUsers);
+        }
+    }
+
 }
