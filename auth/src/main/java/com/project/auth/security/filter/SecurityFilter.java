@@ -2,9 +2,8 @@ package com.project.auth.security.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.project.auth.security.exception.EmailNotFoundException;
-import com.project.auth.security.exception.InvalidOrExpiredTokenException;
 import com.project.core.repository.UserEntityRepository;
-import com.project.auth.security.service.TokenService;
+import com.project.auth.security.service.TokenJwtService;
 import com.project.core.domain.UserEntity;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,14 +21,14 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
-    private final TokenService tokenService;
+    private final TokenJwtService tokenJwtService;
     private final UserEntityRepository userRepository;
 
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
         String token = this.recoverToken(request);
         if (token != null) {
-            DecodedJWT decodedToken = tokenService.validateToken(token);
+            DecodedJWT decodedToken = tokenJwtService.validateToken(token);
             String email = decodedToken.getSubject();
             Long userId = decodedToken.getClaim("userId").asLong();
 

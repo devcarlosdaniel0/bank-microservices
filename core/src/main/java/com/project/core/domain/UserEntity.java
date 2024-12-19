@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -43,6 +44,8 @@ public class UserEntity implements UserDetails {
     private BankAccount bankAccount;
 
     private String confirmationToken;
+
+    private LocalDateTime confirmationTokenExpiration;
 
     private boolean isConfirmed = false;
 

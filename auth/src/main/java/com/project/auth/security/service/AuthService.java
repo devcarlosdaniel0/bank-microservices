@@ -1,6 +1,5 @@
 package com.project.auth.security.service;
 
-import com.project.auth.security.clients.EmailClient;
 import com.project.auth.security.dto.LoginDTO;
 import com.project.auth.security.dto.MessageResponseDTO;
 import com.project.auth.security.dto.RegisterDTO;
@@ -17,8 +16,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -26,8 +23,8 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserEntityRepository userEntityRepository;
     private final PasswordEncoder passwordEncoder;
-    private final TokenService tokenService;
-    private final EmailClient emailClient;
+    private final TokenJwtService tokenJwtService;
+    private final ConfirmationTokenService confirmationTokenService;
 
     @Transactional
     public TokenResponseDTO login(LoginDTO loginDTO) {
@@ -36,7 +33,7 @@ public class AuthService {
 
         Authentication auth = authenticationManager.authenticate(authentication);
 
-        String token = tokenService.generateToken((UserEntity) auth.getPrincipal());
+        String token = tokenJwtService.generateToken((UserEntity) auth.getPrincipal());
 
         return new TokenResponseDTO(token);
     }
@@ -52,37 +49,20 @@ public class AuthService {
                 .username(registerDTO.username())
                 .password(passwordEncoder.encode(registerDTO.password()))
                 .roles(registerDTO.role())
-                .confirmationToken(UUID.randomUUID().toString())
                 .build();
 
-        log.info("Saving user to be saved");
         userEntityRepository.save(userToBeSaved);
 
-        log.info("Calling method send confirmation email");
-        sendConfirmationEmail(userToBeSaved);
+        confirmationTokenService.createAndAssignConfirmationToken(userToBeSaved);
 
         return new MessageResponseDTO("Register success! Please check your email to confirm your account");
     }
 
     @Transactional
     public MessageResponseDTO confirmEmail(String token) {
-        UserEntity user = userEntityRepository.findByConfirmationToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid token"));
+        UserEntity user = confirmationTokenService.validateAndConsumeConfirmationToken(token);
 
-        user.setConfirmed(true);
-        user.setConfirmationToken(null);
-        userEntityRepository.save(user);
-        log.info("Email confirmed successfully");
-
-        return new MessageResponseDTO("Your account it's confirmed, enjoy!");
-    }
-
-    private void sendConfirmationEmail(UserEntity user) {
-        String subject = "E-mail confirmation from Bank Project";
-        String body = "Click on the link to confirm your e-mail: " +
-                "http://localhost:8081/confirm?token=" + user.getConfirmationToken();
-
-        log.info("Sending email confirmation to: {}", user.getEmail());
-        emailClient.sendEmail(user.getEmail(), subject, body);
+        log.info("Email confirmed successfully for user: {}", user.getEmail());
+        return new MessageResponseDTO("Your account is confirmed, enjoy!");
     }
 }
