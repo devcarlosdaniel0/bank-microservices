@@ -1,9 +1,6 @@
 package com.project.auth.security.handler;
 
-import com.project.auth.security.exception.EmailAlreadyExistsException;
-import com.project.auth.security.exception.EmailNotFoundException;
-import com.project.auth.security.exception.ErrorWhileGeneratingTokenJwtException;
-import com.project.auth.security.exception.InvalidOrExpiredTokenException;
+import com.project.auth.security.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -31,10 +28,43 @@ public class AuthExceptionHandler {
             EmailNotFoundException e) {
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
-        problemDetail.setTitle("The email was not founded!");
+        problemDetail.setTitle("The email was not found!");
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+    }
+
+    @ExceptionHandler(ConfirmationTokenNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handlerConfirmationTokenNotFoundException(
+            ConfirmationTokenNotFoundException e) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        problemDetail.setTitle("The confirmation token is invalid!");
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+    }
+
+    @ExceptionHandler(ConfirmationTokenExpiredException.class)
+    public ResponseEntity<ProblemDetail> handlerConfirmationTokenExpiredException(
+            ConfirmationTokenExpiredException e) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+        problemDetail.setTitle("The confirmation token is expired!");
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
+    @ExceptionHandler(AccountAlreadyConfirmedException.class)
+    public ResponseEntity<ProblemDetail> handlerAccountAlreadyConfirmedException(
+            AccountAlreadyConfirmedException e) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+        problemDetail.setTitle("This account it's already confirmed!");
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }
 
     @ExceptionHandler(ErrorWhileGeneratingTokenJwtException.class)

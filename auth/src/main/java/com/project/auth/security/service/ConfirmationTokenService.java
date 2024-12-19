@@ -1,6 +1,11 @@
 package com.project.auth.security.service;
 
 import com.project.auth.security.clients.EmailClient;
+import com.project.auth.security.dto.EmailRequestDTO;
+import com.project.auth.security.exception.AccountAlreadyConfirmedException;
+import com.project.auth.security.exception.ConfirmationTokenExpiredException;
+import com.project.auth.security.exception.ConfirmationTokenNotFoundException;
+import com.project.auth.security.exception.EmailNotFoundException;
 import com.project.core.domain.UserEntity;
 import com.project.core.repository.UserEntityRepository;
 import jakarta.transaction.Transactional;
@@ -18,6 +23,7 @@ public class ConfirmationTokenService {
     private final UserEntityRepository userEntityRepository;
     private final EmailClient emailClient;
 
+    @Transactional
     public void createAndAssignConfirmationToken(UserEntity user) {
         String confirmationToken = UUID.randomUUID().toString();
 
@@ -33,11 +39,11 @@ public class ConfirmationTokenService {
     @Transactional
     public UserEntity validateAndConsumeConfirmationToken(String token) {
         UserEntity user = userEntityRepository.findByConfirmationToken(token)
-                .orElseThrow(() -> new RuntimeException("Token not found"));
+                .orElseThrow(() -> new ConfirmationTokenNotFoundException("Confirmation token not found"));
 
         if (user.getConfirmationTokenExpiration() == null ||
                 user.getConfirmationTokenExpiration().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Token expired");
+            throw new ConfirmationTokenExpiredException("Confirmation token expired, try reconfirm");
         }
 
         user.setConfirmed(true);
@@ -48,10 +54,23 @@ public class ConfirmationTokenService {
         return user;
     }
 
+    @Transactional
+    public void reconfirmEmail(EmailRequestDTO emailRequestDTO) {
+        UserEntity user = userEntityRepository.findByEmail(emailRequestDTO.email())
+                .orElseThrow(() -> new EmailNotFoundException("Email not found"));
+
+        if (user.isConfirmed()) {
+            throw new AccountAlreadyConfirmedException("Account already confirmed");
+        }
+
+        log.info("Resending confirmation token to user: {}", user.getEmail());
+        createAndAssignConfirmationToken(user);
+    }
+
     private void sendConfirmationEmail(UserEntity user) {
         String subject = "E-mail confirmation from Bank Project";
         String body = "Click on the link to confirm your e-mail: " +
-                "http://localhost:8081/confirm?token=" + user.getConfirmationToken();
+                "http://localhost:8081/confirmEmail?token=" + user.getConfirmationToken();
 
         log.info("Sending email confirmation to: {}", user.getEmail());
         emailClient.sendEmail(user.getEmail(), subject, body);

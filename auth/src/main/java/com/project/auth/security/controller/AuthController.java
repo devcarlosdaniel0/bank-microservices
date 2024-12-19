@@ -1,9 +1,6 @@
 package com.project.auth.security.controller;
 
-import com.project.auth.security.dto.LoginDTO;
-import com.project.auth.security.dto.MessageResponseDTO;
-import com.project.auth.security.dto.RegisterDTO;
-import com.project.auth.security.dto.TokenResponseDTO;
+import com.project.auth.security.dto.*;
 import com.project.auth.security.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +23,14 @@ public class AuthController {
         return new ResponseEntity<>(authService.register(registerDTO), HttpStatus.CREATED);
     }
 
-    @GetMapping("confirm")
+    @GetMapping("confirmEmail")
     public ResponseEntity<MessageResponseDTO> confirmEmail(@RequestParam String token) {
         return new ResponseEntity<>(authService.confirmEmail(token), HttpStatus.OK);
     }
+
+    @PostMapping("reconfirmEmail")
+    public ResponseEntity<MessageResponseDTO> reconfirmEmail(@RequestBody @Valid EmailRequestDTO emailRequestDTO) {
+        return new ResponseEntity<>(authService.reconfirmEmail(emailRequestDTO), HttpStatus.OK);
+    }
+
 }

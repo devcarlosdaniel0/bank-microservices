@@ -1,9 +1,6 @@
 package com.project.auth.security.service;
 
-import com.project.auth.security.dto.LoginDTO;
-import com.project.auth.security.dto.MessageResponseDTO;
-import com.project.auth.security.dto.RegisterDTO;
-import com.project.auth.security.dto.TokenResponseDTO;
+import com.project.auth.security.dto.*;
 import com.project.auth.security.exception.EmailAlreadyExistsException;
 import com.project.core.domain.UserEntity;
 import com.project.core.repository.UserEntityRepository;
@@ -64,5 +61,13 @@ public class AuthService {
 
         log.info("Email confirmed successfully for user: {}", user.getEmail());
         return new MessageResponseDTO("Your account is confirmed, enjoy!");
+    }
+
+    @Transactional
+    public MessageResponseDTO reconfirmEmail(EmailRequestDTO emailRequestDTO) {
+        confirmationTokenService.reconfirmEmail(emailRequestDTO);
+
+        log.info("Confirmation email token sent successfully to {}", emailRequestDTO.email());
+        return new MessageResponseDTO("Check your email to confirm again your account!");
     }
 }
