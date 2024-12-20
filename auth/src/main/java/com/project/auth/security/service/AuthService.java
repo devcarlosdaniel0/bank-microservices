@@ -3,6 +3,7 @@ package com.project.auth.security.service;
 import com.project.auth.security.dto.*;
 import com.project.auth.security.exception.EmailAlreadyExistsException;
 import com.project.core.domain.UserEntity;
+import com.project.core.domain.UserRole;
 import com.project.core.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +31,9 @@ public class AuthService {
 
         Authentication auth = authenticationManager.authenticate(authentication);
 
-        String token = tokenJwtService.generateToken((UserEntity) auth.getPrincipal());
+        String jwtToken = tokenJwtService.generateToken((UserEntity) auth.getPrincipal());
 
-        return new TokenResponseDTO(token);
+        return new TokenResponseDTO(jwtToken);
     }
 
     @Transactional
@@ -45,7 +46,7 @@ public class AuthService {
                 .email(registerDTO.email())
                 .username(registerDTO.username())
                 .password(passwordEncoder.encode(registerDTO.password()))
-                .roles(registerDTO.role())
+                .roles(UserRole.USER)
                 .build();
 
         userEntityRepository.save(userToBeSaved);
