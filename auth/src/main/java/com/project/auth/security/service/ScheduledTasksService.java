@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class ScheduledTasksService {
     private final ConfirmationTokenService confirmationTokenService;
 
-    @Scheduled(cron = "0 0/15 * * * ?") // Executa a cada 15 minutos
+    @Scheduled(cron = "0 0/30 * * * ?") // Executa a cada 30 minutos
     public void cleanUpUnconfirmedUsers() {
         log.info("Running scheduled task to clean up unconfirmed users...");
         confirmationTokenService.deleteUnconfirmedUsers();
