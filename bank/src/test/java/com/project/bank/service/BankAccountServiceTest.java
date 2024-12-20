@@ -158,6 +158,23 @@ class BankAccountServiceTest {
             verify(userEntityRepository, times(1)).findById(userIdFromToken);
             verifyNoInteractions(bankAccountRepository);
         }
+
+        @Test
+        @DisplayName("Should throw exception when user are not confirmed")
+        void ShouldThrowExceptionWhenUserAreNotConfirmed() {
+            // Arrange
+            user.setConfirmed(false);
+
+            when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.of(user));
+
+            // Act & Assert
+            UnconfirmedUserException e = assertThrows(UnconfirmedUserException.class,
+                    () -> bankAccountService.createBankAccount());
+
+            assertEquals("Your user are not confirmed! Please confirm your account", e.getMessage());
+            verify(userEntityRepository, times(1)).findById(userIdFromToken);
+            verifyNoInteractions(bankAccountRepository);
+        }
     }
 
     @Nested
@@ -308,7 +325,7 @@ class BankAccountServiceTest {
             BankAccountIdNotFoundException e = assertThrows(BankAccountIdNotFoundException.class,
                     () -> bankAccountService.findBankAccountIdByAccountEmail(accountEmail));
 
-            assertEquals("The bank account email: " + accountEmail + " was not found", e.getMessage());
+            assertEquals("The bank account email: '" + accountEmail + "' was not found", e.getMessage());
         }
     }
 

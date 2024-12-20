@@ -34,6 +34,10 @@ public class BankAccountService {
             throw new UserAlreadyHasBankAccountException("User already has a bank account");
         }
 
+        if (!user.isConfirmed()) {
+            throw new UnconfirmedUserException("Your user are not confirmed! Please confirm your account");
+        }
+
         BankAccount bankAccount = BankAccount.builder()
                 .accountEmail(user.getEmail())
                 .accountName(user.getUsername())
@@ -87,7 +91,7 @@ public class BankAccountService {
 
     public BankAccountFoundedDTO findBankAccountIdByAccountEmail(String accountEmail) {
         BankAccount bankAccount = bankAccountRepository.findByAccountEmail(accountEmail)
-                .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account email: " + accountEmail + " was not found"));
+                .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account email: '" + accountEmail + "' was not found"));
 
         return new BankAccountFoundedDTO(bankAccount.getId());
     }

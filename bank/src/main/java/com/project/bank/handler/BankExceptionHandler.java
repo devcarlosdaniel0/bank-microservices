@@ -109,6 +109,15 @@ public class BankExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
     }
 
+    @ExceptionHandler(UnconfirmedUserException.class)
+    public ResponseEntity<ProblemDetail> handlerUnconfirmedUserException(UnconfirmedUserException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+        problemDetail.setTitle("Your user aren't confirmed yet");
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handlerMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         var fieldErrors = e.getFieldErrors()
