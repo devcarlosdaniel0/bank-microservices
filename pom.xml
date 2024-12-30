@@ -18,6 +18,7 @@
         <module>auth</module>
         <module>core</module>
         <module>mail</module>
+        <module>currency-converter</module>
     </modules>
 
     <groupId>com.project</groupId>
