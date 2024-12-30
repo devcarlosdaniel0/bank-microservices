@@ -35,6 +35,17 @@ public class AuthExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
     }
 
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<ProblemDetail> handlerInvalidLoginException(
+            InvalidPasswordException e) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+        problemDetail.setTitle("The password are incorrect!");
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
     @ExceptionHandler(ConfirmationTokenNotFoundException.class)
     public ResponseEntity<ProblemDetail> handlerConfirmationTokenNotFoundException(
             ConfirmationTokenNotFoundException e) {
