@@ -2,12 +2,15 @@ package com.project.auth.security.service;
 
 import com.project.auth.security.dto.*;
 import com.project.auth.security.exception.EmailAlreadyExistsException;
+import com.project.auth.security.exception.EmailNotFoundException;
+import com.project.auth.security.exception.InvalidPasswordException;
 import com.project.core.domain.UserEntity;
 import com.project.core.domain.UserRole;
 import com.project.core.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,14 +29,21 @@ public class AuthService {
 
     @Transactional
     public TokenResponseDTO login(LoginDTO loginDTO) {
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.password());
+        userEntityRepository.findByEmail(loginDTO.email())
+                .orElseThrow(() -> new EmailNotFoundException(String.format("Email: '%s' not found", loginDTO.email())));
 
-        Authentication auth = authenticationManager.authenticate(authentication);
+        try {
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.password());
 
-        String jwtToken = tokenJwtService.generateToken((UserEntity) auth.getPrincipal());
+            Authentication auth = authenticationManager.authenticate(authentication);
 
-        return new TokenResponseDTO(jwtToken);
+            String jwtToken = tokenJwtService.generateToken((UserEntity) auth.getPrincipal());
+
+            return new TokenResponseDTO(jwtToken);
+        } catch (BadCredentialsException e) {
+            throw new InvalidPasswordException("Invalid password!");
+        }
     }
 
     @Transactional
