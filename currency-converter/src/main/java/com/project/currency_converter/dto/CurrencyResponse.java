@@ -6,5 +6,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Builder
-public record CurrencyResponse(String symbols, BigDecimal price, LocalDateTime timestamp) {
+public record CurrencyResponse(String symbols, BigDecimal exchangeRate, BigDecimal amount, BigDecimal convertedAmount,
+                               LocalDateTime timestamp) {
 }

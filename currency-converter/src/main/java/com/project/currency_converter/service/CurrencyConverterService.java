@@ -22,18 +22,30 @@ public class CurrencyConverterService {
     @Value("${token.api.invertexto}")
     private String tokenAPI;
 
-    public CurrencyResponse convertCurrencies(String symbols) {
+    public CurrencyResponse convertCurrencies(BigDecimal amount, String symbols) {
         Map<String, CurrencyData> response = currencyConverterClient.getCurrencyConversion(symbols, tokenAPI);
 
-        CurrencyData data = response.get(symbols);
+        CurrencyData currencyData = response.get(symbols);
 
-        LocalDateTime timestampFormatted = LocalDateTime.ofInstant(Instant.ofEpochSecond(data.timestamp()), ZoneOffset.UTC);
-        BigDecimal priceRounded = BigDecimal.valueOf(data.price()).setScale(2, RoundingMode.HALF_EVEN);
+        BigDecimal exchangeRate = BigDecimal.valueOf(currencyData.price());
+
+        BigDecimal convertedAmount = exchangeRate.multiply(amount);
 
         return CurrencyResponse.builder()
                 .symbols(symbols)
-                .price(priceRounded)
-                .timestamp(timestampFormatted)
+                .exchangeRate(getRoundedPrice(exchangeRate))
+                .amount(amount)
+                .convertedAmount(getRoundedPrice(convertedAmount))
+                .timestamp(getTimestampFormatted(currencyData))
                 .build();
+    }
+
+    private LocalDateTime getTimestampFormatted(CurrencyData currencyData) {
+        return LocalDateTime.ofInstant(Instant.ofEpochSecond(currencyData.timestamp()),
+                ZoneOffset.UTC);
+    }
+
+    private BigDecimal getRoundedPrice(BigDecimal amount) {
+        return amount.setScale(2, RoundingMode.HALF_EVEN);
     }
 }
