@@ -3,8 +3,15 @@ package com.project.currency_converter.service;
 import com.project.currency_converter.client.CurrencyConverterClient;
 import com.project.currency_converter.dto.CurrencyData;
 import com.project.currency_converter.dto.CurrencyResponse;
+import com.project.currency_converter.exception.CurrencyNotFoundException;
+import com.project.currency_converter.exception.ExternalApiException;
+import com.project.currency_converter.exception.InsufficientAmountValueException;
+import com.project.currency_converter.exception.InvalidSyntaxException;
+import feign.Feign;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -23,7 +30,23 @@ public class CurrencyConverterService {
     private String tokenAPI;
 
     public CurrencyResponse convertCurrencies(BigDecimal amount, String symbols) {
-        Map<String, CurrencyData> response = currencyConverterClient.getCurrencyConversion(symbols, tokenAPI);
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InsufficientAmountValueException("Amount value must be greater than zero");
+        }
+
+        Map<String, CurrencyData> response;
+
+        try {
+            response = currencyConverterClient.getCurrencyConversion(symbols, tokenAPI);
+        } catch (FeignException.NotFound e) {
+            throw new CurrencyNotFoundException(String.format("Currencies symbols not found: '%s'",  symbols));
+        } catch (FeignException.UnprocessableEntity e) {
+            throw new InvalidSyntaxException("Example: USD_EUR");
+        } catch (FeignException e) {
+            int statusCode = e.status();
+            String statusReason = HttpStatus.valueOf(statusCode).getReasonPhrase();
+            throw new ExternalApiException(String.format("Status code: %d [%s]", statusCode, statusReason));
+        }
 
         CurrencyData currencyData = response.get(symbols);
 
