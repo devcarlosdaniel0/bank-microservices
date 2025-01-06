@@ -4,7 +4,6 @@ import com.project.currency_converter.exception.CurrencyNotFoundException;
 import com.project.currency_converter.exception.ExternalApiException;
 import com.project.currency_converter.exception.InsufficientAmountValueException;
 import com.project.currency_converter.exception.InvalidSyntaxException;
-import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;

@@ -54,10 +54,14 @@ public class CurrencyConverterService {
 
         BigDecimal convertedAmount = exchangeRate.multiply(amount);
 
+        return buildCurrencyResponse(amount, symbols, exchangeRate, convertedAmount, currencyData);
+    }
+
+    private CurrencyResponse buildCurrencyResponse(BigDecimal amount, String symbols, BigDecimal exchangeRate, BigDecimal convertedAmount, CurrencyData currencyData) {
         return CurrencyResponse.builder()
+                .amount(amount)
                 .symbols(symbols)
                 .exchangeRate(getRoundedPrice(exchangeRate))
-                .amount(amount)
                 .convertedAmount(getRoundedPrice(convertedAmount))
                 .timestamp(getTimestampFormatted(currencyData))
                 .build();

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
 
-@FeignClient(name = "currency-converter-api", url = "https://api.invertexto.com/v1/currency")
+@FeignClient(name = "invertexto-api", url = "https://api.invertexto.com/v1/currency")
 public interface CurrencyConverterClient {
 
     @GetMapping("/{symbols}")
