@@ -1,15 +1,13 @@
 package com.project.currency_converter.handler;
 
-import com.project.currency_converter.exception.CurrencyNotFoundException;
-import com.project.currency_converter.exception.ExternalApiException;
-import com.project.currency_converter.exception.InsufficientAmountValueException;
-import com.project.currency_converter.exception.InvalidSyntaxException;
+import com.project.currency_converter.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.net.SocketTimeoutException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -53,10 +51,21 @@ public class CurrencyConverterHandler {
             InvalidSyntaxException e) {
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
-        problemDetail.setTitle("The symbols must consist of 3 characters followed by an underscore (_) and then another 3 characters.");
+        problemDetail.setTitle("The symbols must consist of 3 characters followed by an underscore (_) and then another 3 characters");
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
+    }
+
+    @ExceptionHandler(TimeoutException.class)
+    public ResponseEntity<ProblemDetail> handlerTimeoutException(
+            TimeoutException e) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.REQUEST_TIMEOUT, e.getMessage());
+        problemDetail.setTitle("Timeout error");
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(problemDetail);
     }
 
     private String timeFormatted() {
