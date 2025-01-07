@@ -1,14 +1,9 @@
 package com.project.currency_converter.service;
 
-import com.project.currency_converter.client.CurrencyConverterClient;
 import com.project.currency_converter.dto.CurrencyData;
 import com.project.currency_converter.dto.CurrencyResponse;
-import com.project.currency_converter.exception.*;
-import feign.Feign;
-import feign.FeignException;
+import com.project.currency_converter.exception.InsufficientAmountValueException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,7 +11,6 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
