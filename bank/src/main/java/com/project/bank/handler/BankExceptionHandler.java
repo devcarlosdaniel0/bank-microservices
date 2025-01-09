@@ -94,7 +94,7 @@ public class BankExceptionHandler {
     @ExceptionHandler(BankAccountNotFoundException.class)
     public ResponseEntity<ProblemDetail> handlerBankAccountNotFoundException(BankAccountNotFoundException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
-        problemDetail.setTitle("The bank account was not founded");
+        problemDetail.setTitle("The bank account was not found");
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
@@ -103,7 +103,7 @@ public class BankExceptionHandler {
     @ExceptionHandler(EmailNotFoundException.class)
     public ResponseEntity<ProblemDetail> handlerEmailNotFoundException(EmailNotFoundException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
-        problemDetail.setTitle("The receiver account email was not founded");
+        problemDetail.setTitle("The email was not found");
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
