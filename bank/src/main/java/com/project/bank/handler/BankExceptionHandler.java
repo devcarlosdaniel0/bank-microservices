@@ -75,11 +75,22 @@ public class BankExceptionHandler {
     public ResponseEntity<ProblemDetail> handlerUnauthorizedUserException(
             UnauthorizedUserException e) {
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
         problemDetail.setTitle("The JWT token that you passed does not matches with the user ID that you want to create bank account!");
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
+    }
+
+    @ExceptionHandler(InvalidCurrencyCodeException.class)
+    public ResponseEntity<ProblemDetail> handlerInvalidCurrencyCodeException(
+            InvalidCurrencyCodeException e) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+        problemDetail.setTitle("The currency code must follow ISO 4217");
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)

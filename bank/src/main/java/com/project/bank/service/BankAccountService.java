@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.List;
 
 @Service
@@ -25,7 +26,7 @@ public class BankAccountService {
     private final ModelMapper modelMapper;
 
     @Transactional
-    public BankAccountResponseDTO createBankAccount() {
+    public BankAccountResponseDTO createBankAccount(CreateBankAccountDTO createBankAccountDTO) {
         Long userIdFromToken = getUserIdFromToken();
 
         UserEntity user = getUserByUserId(userIdFromToken);
@@ -38,11 +39,14 @@ public class BankAccountService {
             throw new UnconfirmedUserException("Your user are not confirmed! Please confirm your account");
         }
 
+        Currency currency = getCurrencyByCurrencyCode(createBankAccountDTO.currencyCode());
+
         BankAccount bankAccount = BankAccount.builder()
+                .user(user)
                 .accountEmail(user.getEmail())
                 .accountName(user.getUsername())
                 .balance(BigDecimal.ZERO)
-                .user(user)
+                .currency(currency)
                 .build();
 
         bankAccountRepository.save(bankAccount);
@@ -137,6 +141,14 @@ public class BankAccountService {
 
     private enum Operation {
         ADD, SUBTRACT
+    }
+
+    private Currency getCurrencyByCurrencyCode(String currencyCode) {
+        try {
+            return Currency.getInstance(currencyCode.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidCurrencyCodeException("Example: BRL, USD, CAD, AUD");
+        }
     }
 
     private Long getUserIdFromToken() {

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -14,8 +15,9 @@ import java.util.UUID;
 @Builder
 public class BankAccountResponseDTO {
     private UUID id;
-    private BigDecimal balance;
     private Long userId;
     private String email;
     private String accountName;
+    private BigDecimal balance;
+    private Currency currency;
 }
