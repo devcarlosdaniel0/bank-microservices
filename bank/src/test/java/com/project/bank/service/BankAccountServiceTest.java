@@ -24,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,17 +59,22 @@ class BankAccountServiceTest {
     private BankAccount bankAccount;
     private UserEntity receiver;
     private BankAccount receiverBankAccount;
+    private CreateBankAccountDTO createBankAccountDTO;
 
     @BeforeEach
     void setUp() {
         userIdFromToken = 1L;
+
+        createBankAccountDTO = new CreateBankAccountDTO("BRL");
+
         user = new UserEntity(1L, "carlos@gmail.com", "carlos", "123", UserRole.USER, null, null, null, true);
         bankAccount = BankAccount.builder()
                 .id(UUID.randomUUID())
+                .user(user)
                 .accountEmail(user.getEmail())
                 .accountName(user.getUsername())
                 .balance(BigDecimal.ZERO)
-                .user(user)
+                .currency(Currency.getInstance(createBankAccountDTO.currencyCode()))
                 .build();
 
         receiver = new UserEntity(2L, "isaque@gmail.com", "isaque", "123", UserRole.USER, null, null, null, true);
@@ -84,12 +90,13 @@ class BankAccountServiceTest {
                 .thenAnswer(invocation -> {
                     BankAccount source = invocation.getArgument(0);
                     return new BankAccountResponseDTO(
-                                                source.getId(),
-                            source.getBalance(),
+                            source.getId(),
                             source.getUser().getId(),
                             source.getAccountEmail(),
-                            source.getAccountName()
-                                        );
+                            source.getAccountName(),
+                            source.getBalance(),
+                            source.getCurrency()
+                    );
                 });
 
         lenient().when(authentication.getDetails()).thenReturn(1L);
@@ -107,7 +114,7 @@ class BankAccountServiceTest {
             when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
             // Act
-            BankAccountResponseDTO result = bankAccountService.createBankAccount();
+            BankAccountResponseDTO result = bankAccountService.createBankAccount(createBankAccountDTO);
             result.setId(bankAccount.getId());
 
             // Assert
@@ -119,6 +126,7 @@ class BankAccountServiceTest {
             assertEquals(bankAccount.getBalance(), result.getBalance());
             assertEquals(bankAccount.getUser().getId(), result.getUserId());
             assertEquals(bankAccount.getUser().getUsername(), result.getAccountName());
+            assertEquals(bankAccount.getCurrency(), result.getCurrency());
 
             assertEquals(user, bankAccountCaptured.getUser());
             assertEquals(BigDecimal.ZERO, bankAccountCaptured.getBalance());
@@ -135,7 +143,7 @@ class BankAccountServiceTest {
 
             // Act & Assert
             UserIdNotFoundException exception = assertThrows(UserIdNotFoundException.class,
-                    () -> bankAccountService.createBankAccount());
+                    () -> bankAccountService.createBankAccount(createBankAccountDTO));
 
             assertEquals("User ID: " + userIdFromToken + " not found", exception.getMessage());
             verify(userEntityRepository, times(1)).findById(userIdFromToken);
@@ -152,7 +160,7 @@ class BankAccountServiceTest {
 
             // Act & Assert
             UserAlreadyHasBankAccountException exception = assertThrows(UserAlreadyHasBankAccountException.class,
-                    () -> bankAccountService.createBankAccount());
+                    () -> bankAccountService.createBankAccount(createBankAccountDTO));
 
             assertEquals("User already has a bank account", exception.getMessage());
             verify(userEntityRepository, times(1)).findById(userIdFromToken);
@@ -169,10 +177,26 @@ class BankAccountServiceTest {
 
             // Act & Assert
             UnconfirmedUserException e = assertThrows(UnconfirmedUserException.class,
-                    () -> bankAccountService.createBankAccount());
+                    () -> bankAccountService.createBankAccount(createBankAccountDTO));
 
             assertEquals("Your user are not confirmed! Please confirm your account", e.getMessage());
             verify(userEntityRepository, times(1)).findById(userIdFromToken);
+            verifyNoInteractions(bankAccountRepository);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when currency code is invalid")
+        void ShouldThrowExceptionWhenCurrencyCodeIsInvalid() {
+            // Arrange
+            when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.of(user));
+
+            CreateBankAccountDTO invalidDTO = new CreateBankAccountDTO("ABC");
+
+            // Act & Assert
+            InvalidCurrencyCodeException e = assertThrows(InvalidCurrencyCodeException.class,
+                    () -> bankAccountService.createBankAccount(invalidDTO));
+
+            assertEquals("Example: BRL, USD, CAD, AUD", e.getMessage());
             verifyNoInteractions(bankAccountRepository);
         }
     }
