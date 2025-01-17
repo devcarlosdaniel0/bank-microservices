@@ -15,22 +15,22 @@ import java.util.List;
 public class BankAccountController {
     private final BankAccountService bankAccountService;
 
-    @PostMapping("create")
-    public ResponseEntity<BankAccountResponseDTO> createBankAccount() {
-        return new ResponseEntity<>(bankAccountService.createBankAccount(), HttpStatus.CREATED);
+    @PostMapping("create-bank-account")
+    public ResponseEntity<BankAccountResponseDTO> createBankAccount(@RequestBody @Valid CreateBankAccountDTO createBankAccountDTO) {
+        return new ResponseEntity<>(bankAccountService.createBankAccount(createBankAccountDTO), HttpStatus.CREATED);
     }
 
-    @PostMapping("addBalance")
+    @PostMapping("add-balance")
     public ResponseEntity<BankAccountResponseDTO> addBalance(@RequestBody @Valid UpdateBalanceDTO updateBalanceDTO) {
         return new ResponseEntity<>(bankAccountService.addBalance(updateBalanceDTO), HttpStatus.OK);
     }
 
-    @PostMapping("withdrawalBalance")
+    @PostMapping("withdrawal-balance")
     public ResponseEntity<BankAccountResponseDTO> withdrawalBalance(@RequestBody @Valid UpdateBalanceDTO updateBalanceDTO) {
         return new ResponseEntity<>(bankAccountService.withdrawalBalance(updateBalanceDTO), HttpStatus.OK);
     }
 
-    @GetMapping("all")
+    @GetMapping("find-all")
     public ResponseEntity<List<BankAccountResponseDTO>> findAll() {
         return new ResponseEntity<>(bankAccountService.findAll(), HttpStatus.OK);
     }
@@ -40,9 +40,9 @@ public class BankAccountController {
         return new ResponseEntity<>(bankAccountService.transfer(transferDTO), HttpStatus.OK);
     }
 
-    @GetMapping("findBankAccountIdByAccountEmail/{accountEmail}")
-    public ResponseEntity<BankAccountFoundedDTO> findBankAccountIdByAccountEmail(@PathVariable String accountEmail) {
-        BankAccountFoundedDTO bankAccountFounded = bankAccountService.findBankAccountIdByAccountEmail(accountEmail);
+    @GetMapping("find-bank-account-id-by-account-email/{accountEmail}")
+    public ResponseEntity<BankAccountFoundDTO> findBankAccountIdByAccountEmail(@PathVariable String accountEmail) {
+        BankAccountFoundDTO bankAccountFounded = bankAccountService.findBankAccountIdByAccountEmail(accountEmail);
         return new ResponseEntity<>(bankAccountFounded, HttpStatus.OK);
     }
 }

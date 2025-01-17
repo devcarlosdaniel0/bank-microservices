@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.UUID;
 
 @Entity
@@ -22,9 +23,6 @@ public class BankAccount implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotNull
-    private BigDecimal balance = BigDecimal.ZERO;
-
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id")
     @NotNull
@@ -32,9 +30,15 @@ public class BankAccount implements Serializable {
     private UserEntity user;
 
     @NotNull
+    @Email
+    private String accountEmail;
+
+    @NotNull
     private String accountName;
 
     @NotNull
-    @Email
-    private String accountEmail;
+    private BigDecimal balance = BigDecimal.ZERO;
+
+    @NotNull
+    private Currency currency;
 }

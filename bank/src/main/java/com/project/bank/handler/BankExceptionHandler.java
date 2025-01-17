@@ -75,11 +75,22 @@ public class BankExceptionHandler {
     public ResponseEntity<ProblemDetail> handlerUnauthorizedUserException(
             UnauthorizedUserException e) {
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
         problemDetail.setTitle("The JWT token that you passed does not matches with the user ID that you want to create bank account!");
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
+    }
+
+    @ExceptionHandler(InvalidCurrencyCodeException.class)
+    public ResponseEntity<ProblemDetail> handlerInvalidCurrencyCodeException(
+            InvalidCurrencyCodeException e) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+        problemDetail.setTitle("The currency code must follow ISO 4217");
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
@@ -94,7 +105,7 @@ public class BankExceptionHandler {
     @ExceptionHandler(BankAccountNotFoundException.class)
     public ResponseEntity<ProblemDetail> handlerBankAccountNotFoundException(BankAccountNotFoundException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
-        problemDetail.setTitle("The bank account was not founded");
+        problemDetail.setTitle("The bank account was not found");
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
@@ -103,7 +114,7 @@ public class BankExceptionHandler {
     @ExceptionHandler(EmailNotFoundException.class)
     public ResponseEntity<ProblemDetail> handlerEmailNotFoundException(EmailNotFoundException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
-        problemDetail.setTitle("The receiver account email was not founded");
+        problemDetail.setTitle("The email was not found");
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);

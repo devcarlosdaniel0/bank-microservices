@@ -1,5 +1,6 @@
 package com.project.bank.service;
 
+import com.project.bank.clients.CurrencyConverterClient;
 import com.project.bank.dto.*;
 import com.project.bank.exception.*;
 import com.project.core.domain.BankAccount;
@@ -24,6 +25,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,6 +50,9 @@ class BankAccountServiceTest {
     @Mock
     private Authentication authentication;
 
+    @Mock
+    private CurrencyConverterClient currencyConverterClient;
+
     @InjectMocks
     private BankAccountService bankAccountService;
 
@@ -58,17 +64,22 @@ class BankAccountServiceTest {
     private BankAccount bankAccount;
     private UserEntity receiver;
     private BankAccount receiverBankAccount;
+    private CreateBankAccountDTO createBankAccountDTO;
 
     @BeforeEach
     void setUp() {
         userIdFromToken = 1L;
+
+        createBankAccountDTO = new CreateBankAccountDTO("BRL");
+
         user = new UserEntity(1L, "carlos@gmail.com", "carlos", "123", UserRole.USER, null, null, null, true);
         bankAccount = BankAccount.builder()
                 .id(UUID.randomUUID())
+                .user(user)
                 .accountEmail(user.getEmail())
                 .accountName(user.getUsername())
                 .balance(BigDecimal.ZERO)
-                .user(user)
+                .currency(Currency.getInstance(createBankAccountDTO.currencyCode()))
                 .build();
 
         receiver = new UserEntity(2L, "isaque@gmail.com", "isaque", "123", UserRole.USER, null, null, null, true);
@@ -77,6 +88,7 @@ class BankAccountServiceTest {
                 .accountEmail(receiver.getEmail())
                 .accountName(receiver.getUsername())
                 .balance(BigDecimal.ZERO)
+                .currency(Currency.getInstance(createBankAccountDTO.currencyCode()))
                 .user(receiver)
                 .build();
 
@@ -84,12 +96,13 @@ class BankAccountServiceTest {
                 .thenAnswer(invocation -> {
                     BankAccount source = invocation.getArgument(0);
                     return new BankAccountResponseDTO(
-                                                source.getId(),
-                            source.getBalance(),
+                            source.getId(),
                             source.getUser().getId(),
                             source.getAccountEmail(),
-                            source.getAccountName()
-                                        );
+                            source.getAccountName(),
+                            source.getBalance(),
+                            source.getCurrency()
+                    );
                 });
 
         lenient().when(authentication.getDetails()).thenReturn(1L);
@@ -100,14 +113,14 @@ class BankAccountServiceTest {
     class createBankAccount {
 
         @Test
-        @DisplayName("Should create bank account when user exists and has no bank account")
-        void shouldCreateBankAccountWhenUserExistsAndHasNoBankAccount() {
+        @DisplayName("Should create bank account successfully when user exists and has no bank account and is confirmed")
+        void shouldCreateBankAccountSuccessfullyWhenUserExistsAndHasNoBankAccountAndIsConfirmed() {
             // Arrange
             when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.of(user));
             when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
             // Act
-            BankAccountResponseDTO result = bankAccountService.createBankAccount();
+            BankAccountResponseDTO result = bankAccountService.createBankAccount(createBankAccountDTO);
             result.setId(bankAccount.getId());
 
             // Assert
@@ -119,6 +132,7 @@ class BankAccountServiceTest {
             assertEquals(bankAccount.getBalance(), result.getBalance());
             assertEquals(bankAccount.getUser().getId(), result.getUserId());
             assertEquals(bankAccount.getUser().getUsername(), result.getAccountName());
+            assertEquals(bankAccount.getCurrency(), result.getCurrency());
 
             assertEquals(user, bankAccountCaptured.getUser());
             assertEquals(BigDecimal.ZERO, bankAccountCaptured.getBalance());
@@ -135,7 +149,7 @@ class BankAccountServiceTest {
 
             // Act & Assert
             UserIdNotFoundException exception = assertThrows(UserIdNotFoundException.class,
-                    () -> bankAccountService.createBankAccount());
+                    () -> bankAccountService.createBankAccount(createBankAccountDTO));
 
             assertEquals("User ID: " + userIdFromToken + " not found", exception.getMessage());
             verify(userEntityRepository, times(1)).findById(userIdFromToken);
@@ -152,7 +166,7 @@ class BankAccountServiceTest {
 
             // Act & Assert
             UserAlreadyHasBankAccountException exception = assertThrows(UserAlreadyHasBankAccountException.class,
-                    () -> bankAccountService.createBankAccount());
+                    () -> bankAccountService.createBankAccount(createBankAccountDTO));
 
             assertEquals("User already has a bank account", exception.getMessage());
             verify(userEntityRepository, times(1)).findById(userIdFromToken);
@@ -169,10 +183,26 @@ class BankAccountServiceTest {
 
             // Act & Assert
             UnconfirmedUserException e = assertThrows(UnconfirmedUserException.class,
-                    () -> bankAccountService.createBankAccount());
+                    () -> bankAccountService.createBankAccount(createBankAccountDTO));
 
             assertEquals("Your user are not confirmed! Please confirm your account", e.getMessage());
             verify(userEntityRepository, times(1)).findById(userIdFromToken);
+            verifyNoInteractions(bankAccountRepository);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when currency code is invalid")
+        void ShouldThrowExceptionWhenCurrencyCodeIsInvalid() {
+            // Arrange
+            when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.of(user));
+
+            CreateBankAccountDTO invalidDTO = new CreateBankAccountDTO("ABC");
+
+            // Act & Assert
+            InvalidCurrencyCodeException e = assertThrows(InvalidCurrencyCodeException.class,
+                    () -> bankAccountService.createBankAccount(invalidDTO));
+
+            assertEquals("Example: BRL, USD, CAD, AUD", e.getMessage());
             verifyNoInteractions(bankAccountRepository);
         }
     }
@@ -307,11 +337,11 @@ class BankAccountServiceTest {
             when(bankAccountRepository.findByAccountEmail(bankAccount.getAccountEmail())).thenReturn(Optional.of(bankAccount));
 
             // Act
-            BankAccountFoundedDTO bankAccountFoundedDTO = bankAccountService.findBankAccountIdByAccountEmail(bankAccount.getAccountEmail());
+            BankAccountFoundDTO bankAccountFoundDTO = bankAccountService.findBankAccountIdByAccountEmail(bankAccount.getAccountEmail());
 
             // Assert
-            assertNotNull(bankAccountFoundedDTO);
-            assertEquals(bankAccount.getId(), bankAccountFoundedDTO.accountId());
+            assertNotNull(bankAccountFoundDTO);
+            assertEquals(bankAccount.getId(), bankAccountFoundDTO.accountId());
         }
 
         @Test
@@ -332,8 +362,8 @@ class BankAccountServiceTest {
     @Nested
     class transfer {
         @Test
-        @DisplayName("Should transfer successfully when the value its greater than zero and account has enough balance")
-        void shouldTransferSuccessfullyWhenTheValueItsGreaterThanZeroAndAccountHasEnoughBalance() {
+        @DisplayName("Should transfer successfully when the value its greater than zero and account has enough balance and has same currency")
+        void shouldTransferSuccessfullyWhenTheValueItsGreaterThanZeroAndAccountHasEnoughBalanceAndHasSameCurrency() {
             // Arrange
             when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.of(user));
             user.setBankAccount(bankAccount);
@@ -346,12 +376,18 @@ class BankAccountServiceTest {
             var transferValue = BigDecimal.valueOf(10);
             var transferDTO = new TransferDTO(receiverBankAccount.getAccountEmail(), transferValue);
 
-            when(bankAccountRepository.findByAccountEmail(transferDTO.receiverAccountEmail())).thenReturn(Optional.of(receiverBankAccount));
+            when(bankAccountRepository.findByAccountEmail(transferDTO.receiverAccountEmail()))
+                    .thenReturn(Optional.of(receiverBankAccount));
 
             var expectedResponse = TransferResponseDTO.builder()
-                    .response(String.format("Your current balance is: %s and you transferred %s to account ID %s (%s | %s)",
-                            sender.getBalance().subtract(transferValue), transferDTO.value(), receiverBankAccount.getId(),
-                            receiverBankAccount.getAccountName(), receiverBankAccount.getAccountEmail())).build();
+                    .response(String.format("Your current balance is: %s %s and you transferred %s %s to account ID %s (%s | %s)",
+                            sender.getBalance().subtract(transferValue),
+                            sender.getCurrency().getCurrencyCode(),
+                            transferDTO.value(),
+                            receiverBankAccount.getCurrency().getCurrencyCode(),
+                            receiverBankAccount.getId(),
+                            receiverBankAccount.getAccountName(),
+                            receiverBankAccount.getAccountEmail())).build();
 
             // Act
             TransferResponseDTO response = bankAccountService.transfer(transferDTO);
@@ -361,6 +397,63 @@ class BankAccountServiceTest {
             assertEquals(expectedResponse, response);
             assertEquals(BigDecimal.valueOf(0), sender.getBalance());
             assertEquals(BigDecimal.valueOf(10), receiverBankAccount.getBalance());
+        }
+
+        @Test
+        @DisplayName("Should transfer successfully when the value its greater than zero and account has enough balance and has different currency")
+        void shouldTransferSuccessfullyWhenTheValueItsGreaterThanZeroAndAccountHasEnoughBalanceAndHasDifferentCurrency() {
+            // Arrange
+            when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.of(user));
+            user.setBankAccount(bankAccount);
+
+            BankAccount sender = user.getBankAccount();
+            sender.setBalance(BigDecimal.valueOf(100));
+
+            receiver.setBankAccount(receiverBankAccount);
+            receiverBankAccount.setCurrency(Currency.getInstance("USD"));
+
+            var transferValue = BigDecimal.valueOf(50);
+            var transferDTO = new TransferDTO(receiverBankAccount.getAccountEmail(), transferValue);
+
+            var senderCurrency = sender.getCurrency().getCurrencyCode();
+            var receiverCurrency = receiverBankAccount.getCurrency().getCurrencyCode();
+
+            CurrencyResponse expectedResponseClient = CurrencyResponse.builder()
+                    .symbols(String.format("%s_%s", senderCurrency, receiverCurrency))
+                    .exchangeRate(BigDecimal.valueOf(0.16))
+                    .amount(transferValue)
+                    .convertedAmount(BigDecimal.valueOf(8.25))
+                    .timestamp(LocalDateTime.now())
+                    .build();
+
+            BigDecimal convertedAmount = expectedResponseClient.convertedAmount();
+
+            when(bankAccountRepository.findByAccountEmail(transferDTO.receiverAccountEmail()))
+                    .thenReturn(Optional.of(receiverBankAccount));
+
+            when(currencyConverterClient.convertCurrencies(transferValue, String.format("%s_%s",
+                    senderCurrency, receiverCurrency))).thenReturn(expectedResponseClient);
+
+            var expectedResponse = TransferResponseDTO.builder()
+                    .response(String.format("Your current balance is: %s %s and you transferred %s %s to account ID %s (%s | %s). The receiver got %s %s after conversion.",
+                            sender.getBalance().subtract(transferValue),
+                            senderCurrency,
+                            transferDTO.value(),
+                            senderCurrency,
+                            receiverBankAccount.getId(),
+                            receiverBankAccount.getAccountName(),
+                            receiverBankAccount.getAccountEmail(),
+                            convertedAmount,
+                            receiverCurrency)).build();
+
+            // Act
+            TransferResponseDTO response = bankAccountService.transfer(transferDTO);
+
+            // Assert
+            assertNotNull(response);
+            assertEquals(expectedResponse, response);
+            assertEquals(BigDecimal.valueOf(50), sender.getBalance());
+            assertEquals(BigDecimal.valueOf(8.25), receiverBankAccount.getBalance());
         }
 
         @ParameterizedTest

@@ -23,12 +23,12 @@ public class AuthController {
         return new ResponseEntity<>(authService.register(registerDTO), HttpStatus.CREATED);
     }
 
-    @GetMapping("confirmEmail")
+    @GetMapping("confirm-email")
     public ResponseEntity<MessageResponseDTO> confirmEmail(@RequestParam String token) {
         return new ResponseEntity<>(authService.confirmEmail(token), HttpStatus.OK);
     }
 
-    @PostMapping("reconfirmEmail")
+    @PostMapping("reconfirm-email")
     public ResponseEntity<MessageResponseDTO> reconfirmEmail(@RequestBody @Valid EmailRequestDTO emailRequestDTO) {
         return new ResponseEntity<>(authService.reconfirmEmail(emailRequestDTO), HttpStatus.OK);
     }

@@ -1,6 +1,7 @@
 package com.project.bank.service;
 
 import com.project.auth.security.exception.EmailNotFoundException;
+import com.project.bank.clients.CurrencyConverterClient;
 import com.project.bank.dto.*;
 import com.project.bank.exception.*;
 import com.project.core.domain.BankAccount;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.List;
 
 @Service
@@ -23,9 +25,10 @@ public class BankAccountService {
     private final BankAccountRepository bankAccountRepository;
     private final UserEntityRepository userEntityRepository;
     private final ModelMapper modelMapper;
+    private final CurrencyConverterClient currencyConverterClient;
 
     @Transactional
-    public BankAccountResponseDTO createBankAccount() {
+    public BankAccountResponseDTO createBankAccount(CreateBankAccountDTO createBankAccountDTO) {
         Long userIdFromToken = getUserIdFromToken();
 
         UserEntity user = getUserByUserId(userIdFromToken);
@@ -38,11 +41,14 @@ public class BankAccountService {
             throw new UnconfirmedUserException("Your user are not confirmed! Please confirm your account");
         }
 
+        Currency currency = getCurrencyByCurrencyCode(createBankAccountDTO.currencyCode());
+
         BankAccount bankAccount = BankAccount.builder()
+                .user(user)
                 .accountEmail(user.getEmail())
                 .accountName(user.getUsername())
                 .balance(BigDecimal.ZERO)
-                .user(user)
+                .currency(currency)
                 .build();
 
         bankAccountRepository.save(bankAccount);
@@ -74,11 +80,11 @@ public class BankAccountService {
             ));
         }
 
-        sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
-        receiver.setBalance(receiver.getBalance().add(transferDTO.value()));
-
-        return TransferResponseDTO.builder().response(String.format("Your current balance is: %s and you transferred %s to account ID %s (%s | %s)"
-                , sender.getBalance(), transferDTO.value(), receiver.getId(), receiver.getAccountName(), receiver.getAccountEmail())).build();
+        if(!sender.getCurrency().equals(receiver.getCurrency())) {
+            return processDifferentCurrencyTransfer(sender, receiver, transferDTO);
+        } else {
+            return processSameCurrencyTransfer(sender, receiver, transferDTO);
+        }
     }
 
     public List<BankAccountResponseDTO> findAll() {
@@ -89,11 +95,11 @@ public class BankAccountService {
                 .toList();
     }
 
-    public BankAccountFoundedDTO findBankAccountIdByAccountEmail(String accountEmail) {
+    public BankAccountFoundDTO findBankAccountIdByAccountEmail(String accountEmail) {
         BankAccount bankAccount = bankAccountRepository.findByAccountEmail(accountEmail)
                 .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account email: '" + accountEmail + "' was not found"));
 
-        return new BankAccountFoundedDTO(bankAccount.getId());
+        return new BankAccountFoundDTO(bankAccount.getId());
     }
 
     @Transactional
@@ -137,6 +143,60 @@ public class BankAccountService {
 
     private enum Operation {
         ADD, SUBTRACT
+    }
+
+    private TransferResponseDTO processSameCurrencyTransfer(BankAccount sender, BankAccount receiver, TransferDTO transferDTO) {
+        sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
+        receiver.setBalance(receiver.getBalance().add(transferDTO.value()));
+
+        return TransferResponseDTO.builder()
+                .response(String.format(
+                        "Your current balance is: %s %s and you transferred %s %s to account ID %s (%s | %s)",
+                        sender.getBalance(),
+                        sender.getCurrency().getCurrencyCode(),
+                        transferDTO.value(),
+                        receiver.getCurrency().getCurrencyCode(),
+                        receiver.getId(),
+                        receiver.getAccountName(),
+                        receiver.getAccountEmail()
+                ))
+                .build();
+    }
+
+    private TransferResponseDTO processDifferentCurrencyTransfer(BankAccount sender, BankAccount receiver, TransferDTO transferDTO) {
+        String senderCurrency = sender.getCurrency().getCurrencyCode();
+        String receiverCurrency = receiver.getCurrency().getCurrencyCode();
+
+        CurrencyResponse currencyResponse = currencyConverterClient.convertCurrencies(transferDTO.value(),
+                String.format("%s_%s", senderCurrency, receiverCurrency));
+
+        BigDecimal convertedAmount = currencyResponse.convertedAmount();
+
+        sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
+        receiver.setBalance(receiver.getBalance().add(convertedAmount));
+
+        return TransferResponseDTO.builder()
+                .response(String.format(
+                        "Your current balance is: %s %s and you transferred %s %s to account ID %s (%s | %s). The receiver got %s %s after conversion.",
+                        sender.getBalance(),
+                        sender.getCurrency().getCurrencyCode(),
+                        transferDTO.value(),
+                        sender.getCurrency().getCurrencyCode(),
+                        receiver.getId(),
+                        receiver.getAccountName(),
+                        receiver.getAccountEmail(),
+                        convertedAmount,
+                        receiver.getCurrency().getCurrencyCode()
+                ))
+                .build();
+    }
+
+    private Currency getCurrencyByCurrencyCode(String currencyCode) {
+        try {
+            return Currency.getInstance(currencyCode.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidCurrencyCodeException("Example: BRL, USD, CAD, AUD");
+        }
     }
 
     private Long getUserIdFromToken() {
