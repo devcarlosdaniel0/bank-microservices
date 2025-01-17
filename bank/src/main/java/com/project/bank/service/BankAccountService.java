@@ -95,11 +95,11 @@ public class BankAccountService {
                 .toList();
     }
 
-    public BankAccountFoundedDTO findBankAccountIdByAccountEmail(String accountEmail) {
+    public BankAccountFoundDTO findBankAccountIdByAccountEmail(String accountEmail) {
         BankAccount bankAccount = bankAccountRepository.findByAccountEmail(accountEmail)
                 .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account email: '" + accountEmail + "' was not found"));
 
-        return new BankAccountFoundedDTO(bankAccount.getId());
+        return new BankAccountFoundDTO(bankAccount.getId());
     }
 
     @Transactional

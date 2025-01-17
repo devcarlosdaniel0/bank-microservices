@@ -23,6 +23,7 @@ import java.util.UUID;
 public class ConfirmationTokenService {
     private final UserEntityRepository userEntityRepository;
     private final EmailClient emailClient;
+    private static final String CONFIRMATION_URL = "http://localhost:8081/confirm-email?token=";
 
     @Transactional
     public void createAndAssignConfirmationToken(UserEntity user) {
@@ -72,7 +73,7 @@ public class ConfirmationTokenService {
     private void sendConfirmationEmail(UserEntity user) {
         String subject = "E-mail confirmation from Bank Project";
         String body = "Click on the link to confirm your e-mail: " +
-                "http://localhost:8081/confirmEmail?token=" + user.getConfirmationToken();
+                CONFIRMATION_URL + user.getConfirmationToken();
 
         log.info("Sending email confirmation to: {}", user.getEmail());
         emailClient.sendEmail(user.getEmail(), subject, body);

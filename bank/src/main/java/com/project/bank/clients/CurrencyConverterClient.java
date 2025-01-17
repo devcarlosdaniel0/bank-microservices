@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 
 @FeignClient(name = "currency-converter-api")
 public interface CurrencyConverterClient {
-    @GetMapping("/convertCurrencies/{symbols}")
+    @GetMapping("/convert-currencies/{symbols}")
     CurrencyResponse convertCurrencies(@RequestParam BigDecimal amount,
                                        @PathVariable String symbols);
 }

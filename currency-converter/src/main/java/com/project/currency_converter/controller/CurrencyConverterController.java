@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 public class CurrencyConverterController {
     private final CurrencyConverterService currencyConverterService;
 
-    @GetMapping("/convertCurrencies/{symbols}")
+    @GetMapping("/convert-currencies/{symbols}")
     public ResponseEntity<CurrencyResponse> convertCurrencies(@RequestParam BigDecimal amount,
                                                               @PathVariable String symbols) {
         return new ResponseEntity<>(currencyConverterService.convertCurrencies(amount, symbols), HttpStatus.OK);

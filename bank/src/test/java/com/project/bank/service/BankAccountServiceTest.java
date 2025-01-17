@@ -337,11 +337,11 @@ class BankAccountServiceTest {
             when(bankAccountRepository.findByAccountEmail(bankAccount.getAccountEmail())).thenReturn(Optional.of(bankAccount));
 
             // Act
-            BankAccountFoundedDTO bankAccountFoundedDTO = bankAccountService.findBankAccountIdByAccountEmail(bankAccount.getAccountEmail());
+            BankAccountFoundDTO bankAccountFoundDTO = bankAccountService.findBankAccountIdByAccountEmail(bankAccount.getAccountEmail());
 
             // Assert
-            assertNotNull(bankAccountFoundedDTO);
-            assertEquals(bankAccount.getId(), bankAccountFoundedDTO.accountId());
+            assertNotNull(bankAccountFoundDTO);
+            assertEquals(bankAccount.getId(), bankAccountFoundDTO.accountId());
         }
 
         @Test

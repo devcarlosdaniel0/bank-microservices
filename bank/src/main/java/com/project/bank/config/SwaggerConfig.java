@@ -18,7 +18,7 @@ public class SwaggerConfig {
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
                                 .bearerFormat("JWT")
-                                .description("Token JWT de autenticação")));
+                                .description("Token JWT of authentication")));
     }
 }
 
