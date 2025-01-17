@@ -87,52 +87,6 @@ public class BankAccountService {
         }
     }
 
-    private TransferResponseDTO processSameCurrencyTransfer(BankAccount sender, BankAccount receiver, TransferDTO transferDTO) {
-        sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
-        receiver.setBalance(receiver.getBalance().add(transferDTO.value()));
-
-        return TransferResponseDTO.builder()
-                .response(String.format(
-                        "Your current balance is: %s %s and you transferred %s %s to account ID %s (%s | %s)",
-                        sender.getBalance(),
-                        sender.getCurrency().getCurrencyCode(),
-                        transferDTO.value(),
-                        receiver.getCurrency().getCurrencyCode(),
-                        receiver.getId(),
-                        receiver.getAccountName(),
-                        receiver.getAccountEmail()
-                ))
-                .build();
-    }
-
-    private TransferResponseDTO processDifferentCurrencyTransfer(BankAccount sender, BankAccount receiver, TransferDTO transferDTO) {
-        String senderCurrency = sender.getCurrency().getCurrencyCode();
-        String receiverCurrency = receiver.getCurrency().getCurrencyCode();
-
-        CurrencyResponse currencyResponse = currencyConverterClient.convertCurrencies(transferDTO.value(),
-                String.format("%s_%s", senderCurrency, receiverCurrency));
-
-        BigDecimal convertedAmount = currencyResponse.convertedAmount();
-
-        sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
-        receiver.setBalance(receiver.getBalance().add(convertedAmount));
-
-        return TransferResponseDTO.builder()
-                .response(String.format(
-                        "Your current balance is: %s %s and you transferred %s %s to account ID %s (%s | %s). The receiver got %s %s after conversion.",
-                        sender.getBalance(),
-                        sender.getCurrency().getCurrencyCode(),
-                        transferDTO.value(),
-                        sender.getCurrency().getCurrencyCode(),
-                        receiver.getId(),
-                        receiver.getAccountName(),
-                        receiver.getAccountEmail(),
-                        convertedAmount,
-                        receiver.getCurrency().getCurrencyCode()
-                ))
-                .build();
-    }
-
     public List<BankAccountResponseDTO> findAll() {
         List<BankAccount> bankAccounts = bankAccountRepository.findAll();
 
@@ -189,6 +143,52 @@ public class BankAccountService {
 
     private enum Operation {
         ADD, SUBTRACT
+    }
+
+    private TransferResponseDTO processSameCurrencyTransfer(BankAccount sender, BankAccount receiver, TransferDTO transferDTO) {
+        sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
+        receiver.setBalance(receiver.getBalance().add(transferDTO.value()));
+
+        return TransferResponseDTO.builder()
+                .response(String.format(
+                        "Your current balance is: %s %s and you transferred %s %s to account ID %s (%s | %s)",
+                        sender.getBalance(),
+                        sender.getCurrency().getCurrencyCode(),
+                        transferDTO.value(),
+                        receiver.getCurrency().getCurrencyCode(),
+                        receiver.getId(),
+                        receiver.getAccountName(),
+                        receiver.getAccountEmail()
+                ))
+                .build();
+    }
+
+    private TransferResponseDTO processDifferentCurrencyTransfer(BankAccount sender, BankAccount receiver, TransferDTO transferDTO) {
+        String senderCurrency = sender.getCurrency().getCurrencyCode();
+        String receiverCurrency = receiver.getCurrency().getCurrencyCode();
+
+        CurrencyResponse currencyResponse = currencyConverterClient.convertCurrencies(transferDTO.value(),
+                String.format("%s_%s", senderCurrency, receiverCurrency));
+
+        BigDecimal convertedAmount = currencyResponse.convertedAmount();
+
+        sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
+        receiver.setBalance(receiver.getBalance().add(convertedAmount));
+
+        return TransferResponseDTO.builder()
+                .response(String.format(
+                        "Your current balance is: %s %s and you transferred %s %s to account ID %s (%s | %s). The receiver got %s %s after conversion.",
+                        sender.getBalance(),
+                        sender.getCurrency().getCurrencyCode(),
+                        transferDTO.value(),
+                        sender.getCurrency().getCurrencyCode(),
+                        receiver.getId(),
+                        receiver.getAccountName(),
+                        receiver.getAccountEmail(),
+                        convertedAmount,
+                        receiver.getCurrency().getCurrencyCode()
+                ))
+                .build();
     }
 
     private Currency getCurrencyByCurrencyCode(String currencyCode) {
