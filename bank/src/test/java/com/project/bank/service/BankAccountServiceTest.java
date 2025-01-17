@@ -359,8 +359,6 @@ class BankAccountServiceTest {
         }
     }
 
-    // TODO arrumar testes unitários 
-
     @Nested
     class transfer {
         @Test
