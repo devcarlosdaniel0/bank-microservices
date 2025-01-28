@@ -380,14 +380,12 @@ class BankAccountServiceTest {
                     .thenReturn(Optional.of(receiverBankAccount));
 
             var expectedResponse = TransferResponseDTO.builder()
-                    .response(String.format("Your current balance is: %s %s and you transferred %s %s to account ID %s (%s | %s)",
-                            sender.getBalance().subtract(transferValue),
-                            sender.getCurrency().getCurrencyCode(),
-                            transferDTO.value(),
-                            receiverBankAccount.getCurrency().getCurrencyCode(),
-                            receiverBankAccount.getId(),
-                            receiverBankAccount.getAccountName(),
-                            receiverBankAccount.getAccountEmail())).build();
+                    .senderCurrentBalance(sender.getBalance().subtract(transferValue))
+                    .senderCurrencyCode(sender.getCurrency().getCurrencyCode())
+                    .transferredValue(transferDTO.value())
+                    .receiverCurrencyCode(receiverBankAccount.getCurrency().getCurrencyCode())
+                    .receiverName(receiverBankAccount.getAccountName())
+                    .receiverEmail(receiverBankAccount.getAccountEmail()).build();
 
             // Act
             TransferResponseDTO response = bankAccountService.transfer(transferDTO);
@@ -435,16 +433,13 @@ class BankAccountServiceTest {
                     senderCurrency, receiverCurrency))).thenReturn(expectedResponseClient);
 
             var expectedResponse = TransferResponseDTO.builder()
-                    .response(String.format("Your current balance is: %s %s and you transferred %s %s to account ID %s (%s | %s). The receiver got %s %s after conversion.",
-                            sender.getBalance().subtract(transferValue),
-                            senderCurrency,
-                            transferDTO.value(),
-                            senderCurrency,
-                            receiverBankAccount.getId(),
-                            receiverBankAccount.getAccountName(),
-                            receiverBankAccount.getAccountEmail(),
-                            convertedAmount,
-                            receiverCurrency)).build();
+                    .senderCurrentBalance(sender.getBalance().subtract(transferValue))
+                    .senderCurrencyCode(senderCurrency)
+                    .transferredValue(transferDTO.value())
+                    .receiverName(receiverBankAccount.getAccountName())
+                    .receiverEmail(receiverBankAccount.getAccountEmail())
+                    .convertedAmount(convertedAmount)
+                    .receiverCurrencyCode(receiverCurrency).build();
 
             // Act
             TransferResponseDTO response = bankAccountService.transfer(transferDTO);

@@ -20,11 +20,11 @@ public class BankExceptionHandler {
     public ResponseEntity<ProblemDetail> handlerUserAlreadyHasBankAccountException(
             UserAlreadyHasBankAccountException e) {
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
         problemDetail.setTitle("This user already has a bank account registered!");
         problemDetail.setProperty("timeStamp", timeFormatted());
 
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
     }
 
     @ExceptionHandler(UserIdNotFoundException.class)
@@ -122,11 +122,11 @@ public class BankExceptionHandler {
 
     @ExceptionHandler(UnconfirmedUserException.class)
     public ResponseEntity<ProblemDetail> handlerUnconfirmedUserException(UnconfirmedUserException e) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
         problemDetail.setTitle("Your user aren't confirmed yet");
         problemDetail.setProperty("timeStamp", timeFormatted());
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problemDetail);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
