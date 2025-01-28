@@ -150,16 +150,12 @@ public class BankAccountService {
         receiver.setBalance(receiver.getBalance().add(transferDTO.value()));
 
         return TransferResponseDTO.builder()
-                .response(String.format(
-                        "Your current balance is: %s %s and you transferred %s %s to account ID %s (%s | %s)",
-                        sender.getBalance(),
-                        sender.getCurrency().getCurrencyCode(),
-                        transferDTO.value(),
-                        receiver.getCurrency().getCurrencyCode(),
-                        receiver.getId(),
-                        receiver.getAccountName(),
-                        receiver.getAccountEmail()
-                ))
+                .senderCurrentBalance(sender.getBalance())
+                .senderCurrencyCode(sender.getCurrency().getCurrencyCode())
+                .transferredValue(transferDTO.value())
+                .receiverCurrencyCode(receiver.getCurrency().getCurrencyCode())
+                .receiverName(receiver.getAccountName())
+                .receiverEmail(receiver.getAccountEmail())
                 .build();
     }
 
@@ -176,18 +172,13 @@ public class BankAccountService {
         receiver.setBalance(receiver.getBalance().add(convertedAmount));
 
         return TransferResponseDTO.builder()
-                .response(String.format(
-                        "Your current balance is: %s %s and you transferred %s %s to account ID %s (%s | %s). The receiver got %s %s after conversion.",
-                        sender.getBalance(),
-                        sender.getCurrency().getCurrencyCode(),
-                        transferDTO.value(),
-                        sender.getCurrency().getCurrencyCode(),
-                        receiver.getId(),
-                        receiver.getAccountName(),
-                        receiver.getAccountEmail(),
-                        convertedAmount,
-                        receiver.getCurrency().getCurrencyCode()
-                ))
+                .senderCurrentBalance(sender.getBalance())
+                .senderCurrencyCode(senderCurrency)
+                .transferredValue(transferDTO.value())
+                .receiverName(receiver.getAccountName())
+                .receiverEmail(receiver.getAccountEmail())
+                .convertedAmount(convertedAmount)
+                .receiverCurrencyCode(receiverCurrency)
                 .build();
     }
 

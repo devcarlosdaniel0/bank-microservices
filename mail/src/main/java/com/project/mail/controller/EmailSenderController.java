@@ -16,13 +16,13 @@ public class EmailSenderController {
     private final EmailSenderService emailSenderService;
 
     @PostMapping("/email/send")
-    public ResponseEntity<String> sendEmail(@RequestParam String toEmail,
+    public ResponseEntity<Void> sendEmail(@RequestParam String toEmail,
                                           @RequestParam String subject,
                                           @RequestParam String body) {
 
         emailSenderService.sendEmail(toEmail, subject, body);
         log.info("E-mail sent successfully!");
 
-        return new ResponseEntity<>("E-mail sent successfully!", HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
