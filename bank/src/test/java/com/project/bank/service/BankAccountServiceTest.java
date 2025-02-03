@@ -1,5 +1,6 @@
 package com.project.bank.service;
 
+import com.project.auth.security.exception.EmailNotFoundException;
 import com.project.bank.clients.CurrencyConverterClient;
 import com.project.bank.dto.*;
 import com.project.bank.exception.*;
@@ -490,6 +491,23 @@ class BankAccountServiceTest {
                     sender.getBalance(), transferDTO.value()
             ), e.getMessage());
             assertEquals(BigDecimal.valueOf(5), sender.getBalance());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when email is not found")
+        void shouldThrowExceptionWhenEmailIsNotFound() {
+            when(userEntityRepository.findById(userIdFromToken)).thenReturn(Optional.of(user));
+            user.setBankAccount(bankAccount);
+
+            var transferValue = BigDecimal.valueOf(10);
+            var transferDTO = new TransferDTO("email@gmail.com", transferValue);
+
+            when(bankAccountRepository.findByAccountEmail(transferDTO.receiverAccountEmail())).thenReturn(Optional.empty());
+
+            EmailNotFoundException e = assertThrows(EmailNotFoundException.class,
+                    () -> bankAccountService.transfer(transferDTO));
+
+            assertEquals(String.format("Email: %s was not found", transferDTO.receiverAccountEmail()), e.getMessage());
         }
 
         @Test
