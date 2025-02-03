@@ -49,6 +49,12 @@ public class BankAccountController {
     }
 
     @PostMapping("transfer")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Transfer success"),
+            @ApiResponse(responseCode = "403", description = "Transfer not allowed (ex: attempt to transfer to your own bank account or transfer value <= 0)"),
+            @ApiResponse(responseCode = "400", description = "Insufficient funds to complete the transfer"),
+            @ApiResponse(responseCode = "404", description = "User ID or receiver account email not found")
+    })
     public ResponseEntity<TransferResponseDTO> transfer(@RequestBody @Valid TransferDTO transferDTO) {
         return new ResponseEntity<>(bankAccountService.transfer(transferDTO), HttpStatus.OK);
     }
