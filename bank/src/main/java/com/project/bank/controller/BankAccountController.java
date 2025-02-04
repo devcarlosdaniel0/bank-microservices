@@ -19,6 +19,8 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class BankAccountController {
+    private final BankAccountService bankAccountService;
+
     @PostMapping("create-bank-account")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Bank account created"),
@@ -31,9 +33,10 @@ public class BankAccountController {
         return new ResponseEntity<>(bankAccountService.createBankAccount(createBankAccountDTO), HttpStatus.CREATED);
     }
 
-    private final BankAccountService bankAccountService;
-
     @PostMapping("add-balance")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Balance added success")
+    })
     public ResponseEntity<BankAccountResponseDTO> addBalance(@RequestBody @Valid UpdateBalanceDTO updateBalanceDTO) {
         return new ResponseEntity<>(bankAccountService.addBalance(updateBalanceDTO), HttpStatus.OK);
     }
@@ -48,6 +51,9 @@ public class BankAccountController {
     }
 
     @GetMapping("find-all")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Success")
+    })
     public ResponseEntity<List<BankAccountResponseDTO>> findAll() {
         return new ResponseEntity<>(bankAccountService.findAll(), HttpStatus.OK);
     }
@@ -64,6 +70,10 @@ public class BankAccountController {
     }
 
     @GetMapping("find-bank-account-id-by-account-email/{accountEmail}")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Success"),
+            @ApiResponse(responseCode = "404", description = "Bank account not found")
+    })
     public ResponseEntity<BankAccountFoundDTO> findBankAccountIdByAccountEmail(@PathVariable String accountEmail) {
         BankAccountFoundDTO bankAccountFounded = bankAccountService.findBankAccountIdByAccountEmail(accountEmail);
         return new ResponseEntity<>(bankAccountFounded, HttpStatus.OK);
