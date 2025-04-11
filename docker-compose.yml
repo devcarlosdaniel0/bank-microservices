@@ -1,17 +1,21 @@
 services:
   db:
     image: mysql:5.7
-    environment:
-      MYSQL_DATABASE: 'bank_db'
-      MYSQL_USER: 'user'
-      MYSQL_PASSWORD: 'password'
-      MYSQL_ROOT_PASSWORD: 'password'
+    container_name: bank-mysql
+    env_file:
+      - .env
     ports:
-      - '3306:3306'
-    expose:
-      - '3306'
+      - "3306:3306"
     volumes:
       - bank_db:/var/lib/mysql
+
+  discovery:
+    image: bank-discovery-image
+    container_name: bank-discovery
+    ports:
+      - "8761:8761"
+    depends_on:
+      - db
 
 volumes:
   bank_db:
