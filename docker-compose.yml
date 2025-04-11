@@ -21,5 +21,16 @@ services:
     depends_on:
       - db
 
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: bank-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - discovery
+
 volumes:
   bank_db:
