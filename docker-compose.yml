@@ -12,7 +12,9 @@ services:
       - bank_db:/var/lib/mysql
 
   discovery:
-    image: bank-discovery-image
+    build:
+      context: ./discovery
+      dockerfile: Dockerfile
     container_name: bank-discovery
     ports:
       - "8761:8761"
