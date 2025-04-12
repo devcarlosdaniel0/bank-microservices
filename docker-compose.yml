@@ -32,5 +32,18 @@ services:
       - db
       - discovery
 
+  currency-converter:
+    build:
+      context: ./currency-converter
+      dockerfile: Dockerfile
+    container_name: currency-converter
+    env_file:
+      - .env
+    ports:
+      - "8084:8084"
+    depends_on:
+      - db
+      - discovery
+
 volumes:
   bank_db:
