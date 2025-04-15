@@ -45,6 +45,19 @@ services:
       - db
       - discovery
 
+  mail:
+    build:
+      context: ./mail
+      dockerfile: Dockerfile
+    container_name: mail
+    env_file:
+      - .env
+    ports:
+      - "8082:8082"
+    depends_on:
+      - db
+      - discovery
+
   auth:
     build:
       context: ./auth
