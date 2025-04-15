@@ -45,5 +45,18 @@ services:
       - db
       - discovery
 
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: auth
+    env_file:
+      - .env
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db
+      - discovery
+
 volumes:
   bank_db:
