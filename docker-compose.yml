@@ -71,5 +71,15 @@ services:
       - db
       - discovery
 
+  bank:
+    build:
+      context: ./bank
+      dockerfile: Dockerfile
+    container_name: bank
+    env_file:
+      - .env
+    ports:
+      - "8083:8083"
+
 volumes:
   bank_db:
