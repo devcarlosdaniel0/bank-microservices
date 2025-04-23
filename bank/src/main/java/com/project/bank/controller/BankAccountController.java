@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -54,8 +56,8 @@ public class BankAccountController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success")
     })
-    public ResponseEntity<List<BankAccountResponseDTO>> findAll() {
-        return new ResponseEntity<>(bankAccountService.findAll(), HttpStatus.OK);
+    public ResponseEntity<Page<BankAccountResponseDTO>> findAll(Pageable pageable) {
+        return new ResponseEntity<>(bankAccountService.findAll(pageable), HttpStatus.OK);
     }
 
     @PostMapping("transfer")

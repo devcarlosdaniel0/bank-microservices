@@ -10,6 +10,8 @@ import com.project.core.repository.BankAccountRepository;
 import com.project.core.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -87,12 +89,10 @@ public class BankAccountService {
         }
     }
 
-    public List<BankAccountResponseDTO> findAll() {
-        List<BankAccount> bankAccounts = bankAccountRepository.findAll();
+    public Page<BankAccountResponseDTO> findAll(Pageable pageable) {
+        Page<BankAccount> bankAccounts = bankAccountRepository.findAll(pageable);
 
-        return bankAccounts.stream()
-                .map(account -> modelMapper.map(account, BankAccountResponseDTO.class))
-                .toList();
+        return bankAccounts.map(account -> modelMapper.map(account, BankAccountResponseDTO.class));
     }
 
     public BankAccountFoundDTO findBankAccountIdByAccountEmail(String accountEmail) {
