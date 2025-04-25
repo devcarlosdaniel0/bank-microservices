@@ -2,9 +2,7 @@ package com.project.bank.controller;
 
 import com.project.bank.dto.*;
 import com.project.bank.service.BankAccountService;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.project.bank.service.TransactionService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -12,16 +10,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 public class BankAccountController {
     private final BankAccountService bankAccountService;
+    private final TransactionService transactionService;
 
     @PostMapping("create-bank-account")
     @ApiResponses(value = {
@@ -68,7 +64,7 @@ public class BankAccountController {
             @ApiResponse(responseCode = "404", description = "User ID from token or receiver account email not found")
     })
     public ResponseEntity<TransferResponseDTO> transfer(@RequestBody @Valid TransferDTO transferDTO) {
-        return new ResponseEntity<>(bankAccountService.transfer(transferDTO), HttpStatus.OK);
+        return new ResponseEntity<>(transactionService.transfer(transferDTO), HttpStatus.OK);
     }
 
     @GetMapping("find-bank-account-id-by-account-email/{accountEmail}")
