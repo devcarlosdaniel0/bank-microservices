@@ -22,6 +22,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -208,23 +212,33 @@ class BankAccountServiceTest {
         }
     }
 
+
+    // TODO ARRUMAR OS TESTES, paginar os GETS
+    // criar um método para verificar o saldo disponível
+    // criar o histórico de transações
+    
     @Nested
     class findAll {
         @Test
-        @DisplayName("Should return a list of BankResponseDTO when successfully")
-        void shouldReturnListOfBankResponseDTOWhenSuccessfully() {
+        @DisplayName("Should return a Page of BankResponseDTO when successfully")
+        void shouldReturnPageOfBankResponseDTOWhenSuccessfully() {
             // Arrange
-            when(bankAccountRepository.findAll()).thenReturn(List.of(bankAccount));
+            Pageable pageable = PageRequest.of(1, 1);
+            Page<BankAccount> bankAccountPage = new PageImpl<>(List.of(bankAccount));
+
+            when(bankAccountRepository.findAll(pageable)).thenReturn(bankAccountPage);
 
             // Act
-            List<BankAccountResponseDTO> result = bankAccountService.findAll();
+            Page<BankAccountResponseDTO> result = bankAccountService.findAll(pageable);
 
             // Assert
             assertNotNull(result);
-            assertEquals(1, result.size());
-            assertEquals(bankAccount.getBalance(), result.get(0).getBalance());
-            assertEquals(user.getId(), result.get(0).getUserId());
-            assertEquals(user.getUsername(), result.get(0).getAccountName());
+            assertEquals(1, result.getTotalElements());
+            BankAccountResponseDTO dto = result.getContent().get(0);
+
+            assertEquals(bankAccount.getBalance(), dto.getBalance());
+            assertEquals(user.getId(), dto.getUserId());
+            assertEquals(user.getUsername(), dto.getAccountName());
         }
     }
 
