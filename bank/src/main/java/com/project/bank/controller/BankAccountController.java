@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequiredArgsConstructor
 public class BankAccountController {
@@ -29,6 +31,11 @@ public class BankAccountController {
     })
     public ResponseEntity<BankAccountResponseDTO> createBankAccount(@RequestBody @Valid CreateBankAccountDTO createBankAccountDTO) {
         return new ResponseEntity<>(bankAccountService.createBankAccount(createBankAccountDTO), HttpStatus.CREATED);
+    }
+
+    @GetMapping("check-balance")
+    public ResponseEntity<BigDecimal> checkBalance() {
+        return new ResponseEntity<>(bankAccountService.checkBalance(), HttpStatus.OK);
     }
 
     @PostMapping("add-balance")

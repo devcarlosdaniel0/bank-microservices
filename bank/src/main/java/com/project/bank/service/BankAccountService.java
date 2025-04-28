@@ -70,6 +70,15 @@ public class BankAccountService {
         return new BankAccountFoundDTO(bankAccount.getId());
     }
 
+    public BigDecimal checkBalance() {
+        Long userIdFromToken = getUserIdFromToken();
+
+        UserEntity user = getUserByUserId(userIdFromToken);
+        BankAccount bankAccount = getBankAccountFromUser(user);
+
+        return bankAccount.getBalance();
+    }
+
     @Transactional
     public BankAccountResponseDTO addBalance(UpdateBalanceDTO updateBalanceDTO) {
         Long userIdFromToken = getUserIdFromToken();
