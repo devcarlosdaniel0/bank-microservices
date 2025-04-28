@@ -195,8 +195,7 @@ class BankAccountServiceTest {
         }
     }
 
-    // TODO criar um método para verificar o saldo disponível
-    // criar o histórico de transações
+    // TODO criar o histórico de transações
     // criar QR code para simular uma transação via pix
     // integrar a api do mercado pago
     
