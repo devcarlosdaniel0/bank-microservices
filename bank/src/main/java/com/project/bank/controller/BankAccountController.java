@@ -38,6 +38,11 @@ public class BankAccountController {
         return new ResponseEntity<>(bankAccountService.checkBalance(), HttpStatus.OK);
     }
 
+    @GetMapping("hello-world")
+    public String helloWorld() {
+        return "Hello World";
+    }
+
     @PostMapping("add-balance")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Balance added success")
