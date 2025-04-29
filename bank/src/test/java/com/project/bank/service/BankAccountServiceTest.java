@@ -195,7 +195,9 @@ class BankAccountServiceTest {
         }
     }
 
-    // TODO criar o histórico de transações
+    // TODO arrumar para colocar a moeda no GetBalance
+    // criar o histórico de transações
+    // adicionar webflux no projeto (possivelmente em mail, currency e transações)
     // criar QR code para simular uma transação via pix
     // integrar a api do mercado pago
     
