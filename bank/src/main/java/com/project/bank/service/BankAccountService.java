@@ -1,14 +1,12 @@
 package com.project.bank.service;
 
-import com.project.bank.dto.BankAccountFoundDTO;
-import com.project.bank.dto.BankAccountResponseDTO;
-import com.project.bank.dto.CreateBankAccountDTO;
-import com.project.bank.dto.UpdateBalanceDTO;
+import com.project.bank.dto.*;
 import com.project.bank.exception.*;
 import com.project.core.domain.BankAccount;
 import com.project.core.domain.UserEntity;
 import com.project.core.repository.BankAccountRepository;
 import com.project.core.repository.UserEntityRepository;
+import io.swagger.v3.core.util.Json;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -70,13 +68,19 @@ public class BankAccountService {
         return new BankAccountFoundDTO(bankAccount.getId());
     }
 
-    public BigDecimal checkBalance() {
+    public BalanceResponseDTO checkBalance() {
         Long userIdFromToken = getUserIdFromToken();
 
         UserEntity user = getUserByUserId(userIdFromToken);
         BankAccount bankAccount = getBankAccountFromUser(user);
 
-        return bankAccount.getBalance();
+        BigDecimal balance = bankAccount.getBalance();
+        String currency = bankAccount.getCurrency().getCurrencyCode();
+
+        return BalanceResponseDTO.builder()
+                .balance(balance)
+                .currency(currency)
+                .build();
     }
 
     @Transactional

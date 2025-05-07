@@ -34,7 +34,7 @@ public class BankAccountController {
     }
 
     @GetMapping("check-balance")
-    public ResponseEntity<BigDecimal> checkBalance() {
+    public ResponseEntity<BalanceResponseDTO> checkBalance() {
         return new ResponseEntity<>(bankAccountService.checkBalance(), HttpStatus.OK);
     }
 
