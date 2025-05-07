@@ -52,11 +52,9 @@ public class TransactionService {
             ));
         }
 
-        if(!sender.getCurrency().equals(receiver.getCurrency())) {
-            return processDifferentCurrencyTransfer(sender, receiver, transferDTO);
-        } else {
-            return processSameCurrencyTransfer(sender, receiver, transferDTO);
-        }
+        return sender.getCurrency().equals(receiver.getCurrency())
+                ? processSameCurrencyTransfer(sender, receiver, transferDTO)
+                : processDifferentCurrencyTransfer(sender, receiver, transferDTO);
     }
 
     private TransferResponseDTO processSameCurrencyTransfer(BankAccount sender, BankAccount receiver, TransferDTO transferDTO) {
