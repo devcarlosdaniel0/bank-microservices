@@ -10,8 +10,10 @@ import com.project.bank.exception.InsufficientFundsException;
 import com.project.bank.exception.TransferNotAllowedException;
 import com.project.bank.exception.UserIdNotFoundException;
 import com.project.core.domain.BankAccount;
+import com.project.core.domain.TransactionEntity;
 import com.project.core.domain.UserEntity;
 import com.project.core.repository.BankAccountRepository;
+import com.project.core.repository.TransactionEntityRepository;
 import com.project.core.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -20,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +31,7 @@ public class TransactionService {
     private final BankAccountRepository bankAccountRepository;
     private final UserEntityRepository userEntityRepository;
     private final CurrencyConverterClient currencyConverterClient;
+    private final TransactionEntityRepository transactionEntityRepository;
 
     @Transactional
     public TransferResponseDTO transfer(TransferDTO transferDTO) {
@@ -61,6 +66,18 @@ public class TransactionService {
         sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
         receiver.setBalance(receiver.getBalance().add(transferDTO.value()));
 
+        TransactionEntity transactionEntity = TransactionEntity.builder()
+                .senderID(sender.getId().toString())
+                .receiverID(receiver.getId().toString())
+                .senderCurrency(sender.getCurrency().getCurrencyCode())
+                .receiverCurrency(receiver.getCurrency().getCurrencyCode())
+                .transferValue(transferDTO.value())
+                .convertedAmount(null)
+                .timestamp(LocalDateTime.now().atZone(ZoneOffset.UTC).toLocalDateTime())
+                .build();
+
+        transactionEntityRepository.save(transactionEntity);
+
         return TransferResponseDTO.builder()
                 .senderCurrentBalance(sender.getBalance())
                 .senderCurrencyCode(sender.getCurrency().getCurrencyCode())
@@ -82,6 +99,18 @@ public class TransactionService {
 
         sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
         receiver.setBalance(receiver.getBalance().add(convertedAmount));
+
+        TransactionEntity transactionEntity = TransactionEntity.builder()
+                .senderID(sender.getId().toString())
+                .receiverID(receiver.getId().toString())
+                .senderCurrency(sender.getCurrency().getCurrencyCode())
+                .receiverCurrency(receiver.getCurrency().getCurrencyCode())
+                .transferValue(transferDTO.value())
+                .convertedAmount(convertedAmount)
+                .timestamp(LocalDateTime.now().atZone(ZoneOffset.UTC).toLocalDateTime())
+                .build();
+
+        transactionEntityRepository.save(transactionEntity);
 
         return TransferResponseDTO.builder()
                 .senderCurrentBalance(sender.getBalance())
