@@ -29,6 +29,7 @@
     <properties>
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <java-jwt.version>4.4.0</java-jwt.version>
+        <flyway-core.version>10.10.0</flyway-core.version>
     </properties>
 
     <dependencies>
@@ -45,6 +46,18 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway-core.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+            <version>${flyway-core.version}</version>
         </dependency>
 
         <dependency>
