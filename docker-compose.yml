@@ -16,6 +16,8 @@ services:
       context: ./discovery
       dockerfile: Dockerfile
     container_name: discovery
+    env_file:
+      - .env
     ports:
       - "8761:8761"
     depends_on:
@@ -26,6 +28,8 @@ services:
       context: ./gateway
       dockerfile: Dockerfile
     container_name: gateway
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     depends_on:
