@@ -20,13 +20,21 @@ public class TransactionEntity {
 
     private String senderID;
 
-    private String receiverID;
+    private String senderEmail;
+
+    private String senderName;
 
     private String senderCurrency;
 
-    private String receiverCurrency;
-
     private BigDecimal transferValue;
+
+    private String receiverID;
+
+    private String receiverEmail;
+
+    private String receiverName;
+
+    private String receiverCurrency;
 
     private BigDecimal convertedAmount;
 

@@ -58,68 +58,64 @@ public class TransactionService {
         }
 
         return sender.getCurrency().equals(receiver.getCurrency())
-                ? processSameCurrencyTransfer(sender, receiver, transferDTO)
-                : processDifferentCurrencyTransfer(sender, receiver, transferDTO);
+                ? processSameCurrencyTransfer(sender, receiver, transferDTO.value())
+                : processDifferentCurrencyTransfer(sender, receiver, transferDTO.value());
     }
 
-    private TransferResponseDTO processSameCurrencyTransfer(BankAccount sender, BankAccount receiver, TransferDTO transferDTO) {
-        sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
-        receiver.setBalance(receiver.getBalance().add(transferDTO.value()));
-
-        TransactionEntity transactionEntity = TransactionEntity.builder()
-                .senderID(sender.getId().toString())
-                .receiverID(receiver.getId().toString())
-                .senderCurrency(sender.getCurrency().getCurrencyCode())
-                .receiverCurrency(receiver.getCurrency().getCurrencyCode())
-                .transferValue(transferDTO.value())
-                .convertedAmount(null)
-                .timestamp(LocalDateTime.now().atZone(ZoneOffset.UTC).toLocalDateTime())
-                .build();
-
+    private TransferResponseDTO processSameCurrencyTransfer(BankAccount sender, BankAccount receiver, BigDecimal transferValue) {
+        updateBalances(sender, receiver, transferValue, transferValue);
+        TransactionEntity transactionEntity = buildTransaction(sender, receiver, transferValue, null);
         transactionEntityRepository.save(transactionEntity);
 
+        return buildTransferResponseDTO(sender, receiver, transferValue, null);
+    }
+
+    private TransferResponseDTO processDifferentCurrencyTransfer(BankAccount sender, BankAccount receiver, BigDecimal transferValue) {
+        BigDecimal convertedAmount = getConvertedAmount(transferValue, sender.getCurrency().getCurrencyCode(), receiver.getCurrency().getCurrencyCode());
+        updateBalances(sender, receiver, transferValue, convertedAmount);
+        TransactionEntity transactionEntity = buildTransaction(sender, receiver, transferValue, convertedAmount);
+        transactionEntityRepository.save(transactionEntity);
+
+        return buildTransferResponseDTO(sender, receiver, transferValue, convertedAmount);
+    }
+
+    private void updateBalances(BankAccount sender, BankAccount receiver, BigDecimal amountToSubtract, BigDecimal amountToAdd) {
+        sender.setBalance(sender.getBalance().subtract(amountToSubtract));
+        receiver.setBalance(receiver.getBalance().add(amountToAdd));
+    }
+
+    private BigDecimal getConvertedAmount(BigDecimal transferValue, String senderCurrency, String receiverCurrency) {
+        CurrencyResponse currencyResponse = currencyConverterClient.convertCurrencies(transferValue,
+                String.format("%s_%s", senderCurrency, receiverCurrency));
+
+        return currencyResponse.convertedAmount();
+    }
+
+    private TransactionEntity buildTransaction(BankAccount sender, BankAccount receiver, BigDecimal transferValue, BigDecimal convertedAmount) {
+        return TransactionEntity.builder()
+                .senderID(sender.getId().toString())
+                .senderEmail(sender.getAccountEmail())
+                .senderName(sender.getAccountName())
+                .senderCurrency(sender.getCurrency().getCurrencyCode())
+                .transferValue(transferValue)
+                .receiverID(receiver.getId().toString())
+                .receiverEmail(receiver.getAccountEmail())
+                .receiverName(receiver.getAccountName())
+                .receiverCurrency(receiver.getCurrency().getCurrencyCode())
+                .convertedAmount(convertedAmount)
+                .timestamp(LocalDateTime.now().atZone(ZoneOffset.UTC).toLocalDateTime())
+                .build();
+    }
+
+    private TransferResponseDTO buildTransferResponseDTO(BankAccount sender, BankAccount receiver, BigDecimal transferValue, BigDecimal convertedAmount) {
         return TransferResponseDTO.builder()
                 .senderCurrentBalance(sender.getBalance())
                 .senderCurrencyCode(sender.getCurrency().getCurrencyCode())
-                .transferredValue(transferDTO.value())
+                .transferredValue(transferValue)
                 .receiverCurrencyCode(receiver.getCurrency().getCurrencyCode())
                 .receiverName(receiver.getAccountName())
                 .receiverEmail(receiver.getAccountEmail())
-                .build();
-    }
-
-    private TransferResponseDTO processDifferentCurrencyTransfer(BankAccount sender, BankAccount receiver, TransferDTO transferDTO) {
-        String senderCurrency = sender.getCurrency().getCurrencyCode();
-        String receiverCurrency = receiver.getCurrency().getCurrencyCode();
-
-        CurrencyResponse currencyResponse = currencyConverterClient.convertCurrencies(transferDTO.value(),
-                String.format("%s_%s", senderCurrency, receiverCurrency));
-
-        BigDecimal convertedAmount = currencyResponse.convertedAmount();
-
-        sender.setBalance(sender.getBalance().subtract(transferDTO.value()));
-        receiver.setBalance(receiver.getBalance().add(convertedAmount));
-
-        TransactionEntity transactionEntity = TransactionEntity.builder()
-                .senderID(sender.getId().toString())
-                .receiverID(receiver.getId().toString())
-                .senderCurrency(sender.getCurrency().getCurrencyCode())
-                .receiverCurrency(receiver.getCurrency().getCurrencyCode())
-                .transferValue(transferDTO.value())
                 .convertedAmount(convertedAmount)
-                .timestamp(LocalDateTime.now().atZone(ZoneOffset.UTC).toLocalDateTime())
-                .build();
-
-        transactionEntityRepository.save(transactionEntity);
-
-        return TransferResponseDTO.builder()
-                .senderCurrentBalance(sender.getBalance())
-                .senderCurrencyCode(senderCurrency)
-                .transferredValue(transferDTO.value())
-                .receiverName(receiver.getAccountName())
-                .receiverEmail(receiver.getAccountEmail())
-                .convertedAmount(convertedAmount)
-                .receiverCurrencyCode(receiverCurrency)
                 .build();
     }
 
