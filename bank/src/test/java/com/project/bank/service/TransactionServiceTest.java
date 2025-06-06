@@ -9,9 +9,11 @@ import com.project.bank.dto.TransferResponseDTO;
 import com.project.bank.exception.InsufficientFundsException;
 import com.project.bank.exception.TransferNotAllowedException;
 import com.project.core.domain.BankAccount;
+import com.project.core.domain.TransactionEntity;
 import com.project.core.domain.UserEntity;
 import com.project.core.domain.UserRole;
 import com.project.core.repository.BankAccountRepository;
+import com.project.core.repository.TransactionEntityRepository;
 import com.project.core.repository.UserEntityRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,13 +32,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Currency;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TransactionServiceTest {
@@ -46,13 +51,19 @@ class TransactionServiceTest {
     private UserEntityRepository userEntityRepository;
 
     @Mock
-    CurrencyConverterClient currencyConverterClient;
+    private CurrencyConverterClient currencyConverterClient;
+
+    @Mock
+    private TransactionEntityRepository transactionEntityRepository;
 
     @Mock
     private Authentication authentication;
 
     @InjectMocks
     private TransactionService transactionService;
+
+    @Captor
+    private ArgumentCaptor<TransactionEntity> transactionEntityArgumentCaptor;
 
     private Long userIdFromToken;
     private UserEntity user;
@@ -117,16 +128,42 @@ class TransactionServiceTest {
                     .transferredValue(transferDTO.value())
                     .receiverCurrencyCode(receiverBankAccount.getCurrency().getCurrencyCode())
                     .receiverName(receiverBankAccount.getAccountName())
-                    .receiverEmail(receiverBankAccount.getAccountEmail()).build();
+                    .receiverEmail(receiverBankAccount.getAccountEmail())
+                    .convertedAmount(null)
+                    .build();
+
+            LocalDateTime fixedTimestamp = LocalDateTime.of(2025, 1, 20, 18, 0, 0);
+
+            var expectedTransactionEntity = TransactionEntity.builder()
+                    .senderID(sender.getId().toString())
+                    .senderEmail(sender.getAccountEmail())
+                    .senderName(sender.getAccountName())
+                    .senderCurrency(sender.getCurrency().getCurrencyCode())
+                    .transferValue(transferValue)
+                    .receiverID(receiverBankAccount.getId().toString())
+                    .receiverEmail(receiverBankAccount.getAccountEmail())
+                    .receiverName(receiverBankAccount.getAccountName())
+                    .receiverCurrency(receiverBankAccount.getCurrency().getCurrencyCode())
+                    .convertedAmount(null)
+                    .timestamp(fixedTimestamp)
+                    .build();
+
+            when(transactionEntityRepository.save(any(TransactionEntity.class))).thenReturn(expectedTransactionEntity);
 
             // Act
             TransferResponseDTO response = transactionService.transfer(transferDTO);
 
             // Assert
+            verify(transactionEntityRepository).save(transactionEntityArgumentCaptor.capture());
+            TransactionEntity transactionEntityCaptured = transactionEntityArgumentCaptor.getValue();
+            transactionEntityCaptured.setTimestamp(fixedTimestamp);
+
             assertNotNull(response);
+            assertEquals(expectedTransactionEntity, transactionEntityCaptured);
             assertEquals(expectedResponse, response);
             assertEquals(BigDecimal.valueOf(0), sender.getBalance());
             assertEquals(BigDecimal.valueOf(10), receiverBankAccount.getBalance());
+            assertNull(response.getConvertedAmount());
         }
 
         @Test
@@ -166,21 +203,46 @@ class TransactionServiceTest {
 
             var expectedResponse = TransferResponseDTO.builder()
                     .senderCurrentBalance(sender.getBalance().subtract(transferValue))
-                    .senderCurrencyCode(senderCurrency)
+                    .senderCurrencyCode(sender.getCurrency().getCurrencyCode())
                     .transferredValue(transferDTO.value())
                     .receiverName(receiverBankAccount.getAccountName())
                     .receiverEmail(receiverBankAccount.getAccountEmail())
                     .convertedAmount(convertedAmount)
-                    .receiverCurrencyCode(receiverCurrency).build();
+                    .receiverCurrencyCode(receiverBankAccount.getCurrency().getCurrencyCode())
+                    .build();
+
+            LocalDateTime fixedTimestamp = LocalDateTime.of(2025, 1, 20, 18, 0, 0);
+
+            var expectedTransactionEntity = TransactionEntity.builder()
+                    .senderID(sender.getId().toString())
+                    .senderEmail(sender.getAccountEmail())
+                    .senderName(sender.getAccountName())
+                    .senderCurrency(sender.getCurrency().getCurrencyCode())
+                    .transferValue(transferValue)
+                    .receiverID(receiverBankAccount.getId().toString())
+                    .receiverEmail(receiverBankAccount.getAccountEmail())
+                    .receiverName(receiverBankAccount.getAccountName())
+                    .receiverCurrency(receiverBankAccount.getCurrency().getCurrencyCode())
+                    .convertedAmount(convertedAmount)
+                    .timestamp(fixedTimestamp)
+                    .build();
+
+            when(transactionEntityRepository.save(any(TransactionEntity.class))).thenReturn(expectedTransactionEntity);
 
             // Act
             TransferResponseDTO response = transactionService.transfer(transferDTO);
 
             // Assert
+            verify(transactionEntityRepository).save(transactionEntityArgumentCaptor.capture());
+            TransactionEntity transactionEntityCaptured = transactionEntityArgumentCaptor.getValue();
+            transactionEntityCaptured.setTimestamp(fixedTimestamp);
+
             assertNotNull(response);
             assertEquals(expectedResponse, response);
             assertEquals(BigDecimal.valueOf(50), sender.getBalance());
             assertEquals(BigDecimal.valueOf(8.25), receiverBankAccount.getBalance());
+            assertNotNull(response.getConvertedAmount());
+            assertEquals(response.getConvertedAmount(), convertedAmount);
         }
 
         @ParameterizedTest
