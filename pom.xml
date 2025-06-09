@@ -19,7 +19,6 @@
         <module>mail</module>
         <module>bank</module>
         <module>currency-converter</module>
-        <module>qrcode.generator</module>
     </modules>
 
     <groupId>com.project</groupId>
