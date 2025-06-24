@@ -195,8 +195,7 @@ class BankAccountServiceTest {
         }
     }
 
-    // criar QR code para simular uma transação via pix
-    // integrar a api do mercado pago
+    // TODO integrar a api do mercado pago
     
     @Nested
     class findAll {
