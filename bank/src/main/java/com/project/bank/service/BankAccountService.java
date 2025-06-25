@@ -6,7 +6,6 @@ import com.project.core.domain.BankAccount;
 import com.project.core.domain.UserEntity;
 import com.project.core.repository.BankAccountRepository;
 import com.project.core.repository.UserEntityRepository;
-import io.swagger.v3.core.util.Json;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
