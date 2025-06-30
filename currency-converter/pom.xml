@@ -54,18 +54,6 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.2.5</version>
-				<configuration>
-					<environmentVariables>
-						<!--suppress UnresolvedMavenProperty -->
-						<TOKEN_API_INVERTEXTO>${env.TOKEN_API_INVERTEXTO}</TOKEN_API_INVERTEXTO>
-					</environmentVariables>
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>
 
