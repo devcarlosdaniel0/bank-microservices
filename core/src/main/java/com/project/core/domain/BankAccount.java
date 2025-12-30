@@ -16,8 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BankAccount implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class BankAccount  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
