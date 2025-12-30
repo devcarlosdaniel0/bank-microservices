@@ -1,6 +1,6 @@
-package com.project.core.repository;
+package com.project.bank.repository;
 
-import com.project.core.domain.TransactionEntity;
+import com.project.bank.domain.TransactionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

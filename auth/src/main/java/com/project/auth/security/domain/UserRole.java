@@ -1,4 +1,4 @@
-package com.project.core.domain;
+package com.project.auth.security.domain;
 
 public enum UserRole {
     ADMIN("admin"),

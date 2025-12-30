@@ -1,7 +1,6 @@
-package com.project.core.repository;
+package com.project.auth.security.repository;
 
-
-import com.project.core.domain.UserEntity;
+import com.project.auth.security.domain.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

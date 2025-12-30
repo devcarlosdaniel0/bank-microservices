@@ -7,7 +7,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.project.auth.security.exception.ErrorWhileGeneratingTokenJwtException;
 import com.project.auth.security.exception.InvalidOrExpiredTokenException;
-import com.project.core.domain.UserEntity;
+import com.project.auth.security.domain.UserEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

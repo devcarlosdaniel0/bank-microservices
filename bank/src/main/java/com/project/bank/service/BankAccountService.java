@@ -2,10 +2,10 @@ package com.project.bank.service;
 
 import com.project.bank.dto.*;
 import com.project.bank.exception.*;
-import com.project.core.domain.BankAccount;
-import com.project.core.domain.UserEntity;
-import com.project.core.repository.BankAccountRepository;
-import com.project.core.repository.UserEntityRepository;
+import com.project.bank.domain.BankAccount;
+import com.project.auth.security.domain.UserEntity;
+import com.project.bank.repository.BankAccountRepository;
+import com.project.auth.security.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -31,7 +31,7 @@ public class BankAccountService {
 
         UserEntity user = getUserByUserId(userIdFromToken);
 
-        if (user.getBankAccount() != null) {
+        if (bankAccountRepository.findByUserId(userIdFromToken).isPresent()) {
             throw new UserAlreadyHasBankAccountException("User already has a bank account");
         }
 
@@ -42,7 +42,7 @@ public class BankAccountService {
         Currency currency = getCurrencyByCurrencyCode(createBankAccountDTO.currencyCode());
 
         BankAccount bankAccount = BankAccount.builder()
-                .user(user)
+                .userId(userIdFromToken)
                 .accountEmail(user.getEmail())
                 .accountName(user.getUsername())
                 .balance(BigDecimal.ZERO)
@@ -144,10 +144,7 @@ public class BankAccountService {
     }
 
     private BankAccount getBankAccountFromUser(UserEntity user) {
-        BankAccount bankAccount = user.getBankAccount();
-        if (bankAccount == null) {
-            throw new BankAccountNotFoundException("User does not have a bank account");
-        }
-        return bankAccount;
+        return bankAccountRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new BankAccountNotFoundException("User does not have a bank account"));
     }
 }

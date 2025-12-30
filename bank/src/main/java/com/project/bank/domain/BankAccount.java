@@ -1,11 +1,10 @@
-package com.project.core.domain;
+package com.project.bank.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.UUID;
@@ -22,11 +21,8 @@ public class BankAccount  {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "user_id")
     @NotNull
-    @ToString.Exclude
-    private UserEntity user;
+    private Long userId;
 
     @NotNull
     @Email

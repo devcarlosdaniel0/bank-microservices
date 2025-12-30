@@ -9,12 +9,12 @@ import com.project.bank.exception.BankAccountNotFoundException;
 import com.project.bank.exception.InsufficientFundsException;
 import com.project.bank.exception.TransferNotAllowedException;
 import com.project.bank.exception.UserIdNotFoundException;
-import com.project.core.domain.BankAccount;
-import com.project.core.domain.TransactionEntity;
-import com.project.core.domain.UserEntity;
-import com.project.core.repository.BankAccountRepository;
-import com.project.core.repository.TransactionEntityRepository;
-import com.project.core.repository.UserEntityRepository;
+import com.project.bank.domain.BankAccount;
+import com.project.bank.domain.TransactionEntity;
+import com.project.auth.security.domain.UserEntity;
+import com.project.bank.repository.BankAccountRepository;
+import com.project.bank.repository.TransactionEntityRepository;
+import com.project.auth.security.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -130,10 +130,7 @@ public class TransactionService {
     }
 
     private BankAccount getBankAccountFromUser(UserEntity user) {
-        BankAccount bankAccount = user.getBankAccount();
-        if (bankAccount == null) {
-            throw new BankAccountNotFoundException("User does not have a bank account");
-        }
-        return bankAccount;
+        return bankAccountRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new BankAccountNotFoundException("User does not have a bank account"));
     }
 }

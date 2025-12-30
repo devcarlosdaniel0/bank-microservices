@@ -1,4 +1,4 @@
-package com.project.core.domain;
+package com.project.bank.domain;
 
 import jakarta.persistence.*;
 import lombok.*;

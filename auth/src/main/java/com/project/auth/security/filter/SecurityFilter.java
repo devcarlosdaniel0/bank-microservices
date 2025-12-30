@@ -2,9 +2,9 @@ package com.project.auth.security.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.project.auth.security.exception.EmailNotFoundException;
-import com.project.core.repository.UserEntityRepository;
+import com.project.auth.security.repository.UserEntityRepository;
 import com.project.auth.security.service.TokenJwtService;
-import com.project.core.domain.UserEntity;
+import com.project.auth.security.domain.UserEntity;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

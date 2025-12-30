@@ -1,4 +1,4 @@
-package com.project.core.domain;
+package com.project.auth.security.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -38,10 +38,6 @@ public class UserEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     @NotNull
     private UserRole roles;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.PERSIST)
-    @ToString.Exclude
-    private BankAccount bankAccount;
 
     private String confirmationToken;
 
