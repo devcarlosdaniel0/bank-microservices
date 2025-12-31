@@ -1,5 +1,6 @@
 package com.project.bank.service;
 
+import com.project.bank.domain.AuthUser;
 import com.project.bank.dto.*;
 import com.project.bank.exception.*;
 import com.project.bank.domain.BankAccount;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Currency;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -38,12 +40,15 @@ public class BankAccountService {
 
         Currency currency = getCurrencyByCurrencyCode(createBankAccountDTO.currencyCode());
 
+        AuthUser authUser = (AuthUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        String email = authUser.email();
+        String username = authUser.username();
+
         BankAccount bankAccount = BankAccount.builder()
                 .userId(userIdFromToken)
-                /*
-                .accountEmail(user.getEmail())
-                .accountName(user.getUsername())
-                 */
+                .accountEmail(email)
+                .accountName(username)
                 .balance(BigDecimal.ZERO)
                 .currency(currency)
                 .build();
@@ -130,8 +135,9 @@ public class BankAccountService {
     }
 
     private Long getUserIdFromToken() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (Long) authentication.getDetails();
+        AuthUser authUser = (AuthUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return authUser.id();
     }
 
     private BankAccount getBankAccountFromUserId(Long userId) {

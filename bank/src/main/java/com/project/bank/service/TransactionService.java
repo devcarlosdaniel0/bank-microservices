@@ -1,6 +1,7 @@
 package com.project.bank.service;
 
 import com.project.bank.clients.CurrencyConverterClient;
+import com.project.bank.domain.AuthUser;
 import com.project.bank.domain.BankAccount;
 import com.project.bank.domain.TransactionEntity;
 import com.project.bank.dto.CurrencyResponse;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -114,8 +116,9 @@ public class TransactionService {
     }
 
     private Long getUserIdFromToken() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (Long) authentication.getDetails();
+        AuthUser authUser = (AuthUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return authUser.id();
     }
 
     private BankAccount getBankAccountFromUserId(Long userId) {
