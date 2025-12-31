@@ -26,22 +26,21 @@ public class BankAccountService {
     public BankAccountResponseDTO createBankAccount(CreateBankAccountDTO createBankAccountDTO) {
         Long userIdFromToken = getUserIdFromToken();
 
-        if (bankAccountRepository.findByUserId(userIdFromToken).isPresent()) {
-            throw new UserAlreadyHasBankAccountException("User already has a bank account");
-        }
-
-        /*
-        if (!user.isConfirmed()) {
-            throw new UnconfirmedUserException("Your user are not confirmed! Please confirm your account");
-        }
-         */
-
-        Currency currency = getCurrencyByCurrencyCode(createBankAccountDTO.currencyCode());
-
         AuthUser authUser = (AuthUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         String email = authUser.email();
         String username = authUser.username();
+        boolean isConfirmed = authUser.isConfirmed();
+
+        if (bankAccountRepository.findByUserId(userIdFromToken).isPresent()) {
+            throw new UserAlreadyHasBankAccountException("User already has a bank account");
+        }
+
+        if (!isConfirmed) {
+            throw new UnconfirmedUserException("Your user are not confirmed! Please confirm your account");
+        }
+
+        Currency currency = getCurrencyByCurrencyCode(createBankAccountDTO.currencyCode());
 
         BankAccount bankAccount = BankAccount.builder()
                 .userId(userIdFromToken)

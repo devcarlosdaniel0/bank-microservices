@@ -29,6 +29,7 @@ public class TokenJwtService {
                     .withClaim("userId", user.getId())
                     .withClaim("username", user.getUsername())
                     .withClaim("role", user.getRoles().name())
+                    .withClaim("isConfirmed", user.isConfirmed())
                     .withExpiresAt(generateExpirationTime())
                     .sign(algorithm);
         } catch (JWTCreationException e) {

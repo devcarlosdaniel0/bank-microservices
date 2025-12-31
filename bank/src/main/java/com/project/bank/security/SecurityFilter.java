@@ -34,10 +34,11 @@ public class SecurityFilter extends OncePerRequestFilter {
             Long userId = decodedToken.getClaim("userId").asLong();
             String username = decodedToken.getClaim("username").asString();
             String role = decodedToken.getClaim("role").asString();
+            Boolean isConfirmed = decodedToken.getClaim("isConfirmed").asBoolean();
 
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
 
-            AuthUser principal = new AuthUser(userId, email, username);
+            AuthUser principal = new AuthUser(userId, email, username, isConfirmed);
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(principal, null, authorities);
