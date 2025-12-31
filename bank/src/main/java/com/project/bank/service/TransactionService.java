@@ -1,20 +1,16 @@
 package com.project.bank.service;
 
-import com.project.auth.security.exception.EmailNotFoundException;
 import com.project.bank.clients.CurrencyConverterClient;
+import com.project.bank.domain.BankAccount;
+import com.project.bank.domain.TransactionEntity;
 import com.project.bank.dto.CurrencyResponse;
 import com.project.bank.dto.TransferDTO;
 import com.project.bank.dto.TransferResponseDTO;
 import com.project.bank.exception.BankAccountNotFoundException;
 import com.project.bank.exception.InsufficientFundsException;
 import com.project.bank.exception.TransferNotAllowedException;
-import com.project.bank.exception.UserIdNotFoundException;
-import com.project.bank.domain.BankAccount;
-import com.project.bank.domain.TransactionEntity;
-import com.project.auth.security.domain.UserEntity;
 import com.project.bank.repository.BankAccountRepository;
 import com.project.bank.repository.TransactionEntityRepository;
-import com.project.auth.security.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,7 +25,6 @@ import java.time.ZoneOffset;
 @RequiredArgsConstructor
 public class TransactionService {
     private final BankAccountRepository bankAccountRepository;
-    private final UserEntityRepository userEntityRepository;
     private final CurrencyConverterClient currencyConverterClient;
     private final TransactionEntityRepository transactionEntityRepository;
 
@@ -40,11 +35,10 @@ public class TransactionService {
         }
 
         Long userIdFromToken = getUserIdFromToken();
-        UserEntity userFromToken = getUserByUserId(userIdFromToken);
 
-        BankAccount sender = getBankAccountFromUser(userFromToken);
+        BankAccount sender = getBankAccountFromUserId(userIdFromToken);
         BankAccount receiver = bankAccountRepository.findByAccountEmail(transferDTO.receiverAccountEmail())
-                .orElseThrow(() -> new EmailNotFoundException(String.format("Email: %s was not found", transferDTO.receiverAccountEmail())));
+                .orElseThrow(() -> new RuntimeException(String.format("Email: %s was not found", transferDTO.receiverAccountEmail())));
 
         if (transferDTO.receiverAccountEmail().equalsIgnoreCase(sender.getAccountEmail())) {
             throw new TransferNotAllowedException("You cant transfer to your own bank account");
@@ -124,13 +118,8 @@ public class TransactionService {
         return (Long) authentication.getDetails();
     }
 
-    private UserEntity getUserByUserId(Long userIdFromToken) {
-        return userEntityRepository.findById(userIdFromToken)
-                .orElseThrow(() -> new UserIdNotFoundException("User ID: " + userIdFromToken + " not found"));
-    }
-
-    private BankAccount getBankAccountFromUser(UserEntity user) {
-        return bankAccountRepository.findByUserId(user.getId())
+    private BankAccount getBankAccountFromUserId(Long userId) {
+        return bankAccountRepository.findByUserId(userId)
                 .orElseThrow(() -> new BankAccountNotFoundException("User does not have a bank account"));
     }
 }

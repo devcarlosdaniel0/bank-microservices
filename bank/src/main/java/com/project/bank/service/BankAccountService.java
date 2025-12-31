@@ -3,9 +3,7 @@ package com.project.bank.service;
 import com.project.bank.dto.*;
 import com.project.bank.exception.*;
 import com.project.bank.domain.BankAccount;
-import com.project.auth.security.domain.UserEntity;
 import com.project.bank.repository.BankAccountRepository;
-import com.project.auth.security.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -22,29 +20,30 @@ import java.util.Currency;
 @RequiredArgsConstructor
 public class BankAccountService {
     private final BankAccountRepository bankAccountRepository;
-    private final UserEntityRepository userEntityRepository;
     private final ModelMapper modelMapper;
 
     @Transactional
     public BankAccountResponseDTO createBankAccount(CreateBankAccountDTO createBankAccountDTO) {
         Long userIdFromToken = getUserIdFromToken();
 
-        UserEntity user = getUserByUserId(userIdFromToken);
-
         if (bankAccountRepository.findByUserId(userIdFromToken).isPresent()) {
             throw new UserAlreadyHasBankAccountException("User already has a bank account");
         }
 
+        /*
         if (!user.isConfirmed()) {
             throw new UnconfirmedUserException("Your user are not confirmed! Please confirm your account");
         }
+         */
 
         Currency currency = getCurrencyByCurrencyCode(createBankAccountDTO.currencyCode());
 
         BankAccount bankAccount = BankAccount.builder()
                 .userId(userIdFromToken)
+                /*
                 .accountEmail(user.getEmail())
                 .accountName(user.getUsername())
+                 */
                 .balance(BigDecimal.ZERO)
                 .currency(currency)
                 .build();
@@ -70,8 +69,7 @@ public class BankAccountService {
     public BalanceResponseDTO checkBalance() {
         Long userIdFromToken = getUserIdFromToken();
 
-        UserEntity user = getUserByUserId(userIdFromToken);
-        BankAccount bankAccount = getBankAccountFromUser(user);
+        BankAccount bankAccount = getBankAccountFromUserId(userIdFromToken);
 
         BigDecimal balance = bankAccount.getBalance();
         String currency = bankAccount.getCurrency().getCurrencyCode();
@@ -86,8 +84,7 @@ public class BankAccountService {
     public BankAccountResponseDTO addBalance(UpdateBalanceDTO updateBalanceDTO) {
         Long userIdFromToken = getUserIdFromToken();
 
-        UserEntity user = getUserByUserId(userIdFromToken);
-        BankAccount bankAccount = getBankAccountFromUser(user);
+        BankAccount bankAccount = getBankAccountFromUserId(userIdFromToken);
 
         return updateBalance(bankAccount, updateBalanceDTO.value(), Operation.ADD);
     }
@@ -96,8 +93,7 @@ public class BankAccountService {
     public BankAccountResponseDTO withdrawalBalance(UpdateBalanceDTO updateBalanceDTO) {
         Long userIdFromToken = getUserIdFromToken();
 
-        UserEntity user = getUserByUserId(userIdFromToken);
-        BankAccount bankAccount = getBankAccountFromUser(user);
+        BankAccount bankAccount = getBankAccountFromUserId(userIdFromToken);
 
         return updateBalance(bankAccount, updateBalanceDTO.value(), Operation.SUBTRACT);
     }
@@ -138,13 +134,8 @@ public class BankAccountService {
         return (Long) authentication.getDetails();
     }
 
-    private UserEntity getUserByUserId(Long userIdFromToken) {
-        return userEntityRepository.findById(userIdFromToken)
-                .orElseThrow(() -> new UserIdNotFoundException("User ID: " + userIdFromToken + " not found"));
-    }
-
-    private BankAccount getBankAccountFromUser(UserEntity user) {
-        return bankAccountRepository.findByUserId(user.getId())
+    private BankAccount getBankAccountFromUserId(Long userId) {
+        return bankAccountRepository.findByUserId(userId)
                 .orElseThrow(() -> new BankAccountNotFoundException("User does not have a bank account"));
     }
 }

@@ -1,6 +1,5 @@
 package com.project.bank.handler;
 
-import com.project.auth.security.exception.EmailNotFoundException;
 import com.project.bank.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -111,6 +110,7 @@ public class BankExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
     }
 
+    /*
     @ExceptionHandler(EmailNotFoundException.class)
     public ResponseEntity<ProblemDetail> handlerEmailNotFoundException(EmailNotFoundException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
@@ -119,6 +119,7 @@ public class BankExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
     }
+     */
 
     @ExceptionHandler(UnconfirmedUserException.class)
     public ResponseEntity<ProblemDetail> handlerUnconfirmedUserException(UnconfirmedUserException e) {

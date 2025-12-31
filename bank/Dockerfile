@@ -4,7 +4,7 @@ WORKDIR /app
 EXPOSE 8083
 EXPOSE 5005
 
-COPY target/bank-1.0-SNAPSHOT-exec.jar bank.jar
+COPY target/bank-1.0-SNAPSHOT.jar bank.jar
 
 SHELL ["/bin/sh", "-c"]
 CMD java ${BANK_ADDITIONAL_OPTS} -jar bank.jar

@@ -1,6 +1,5 @@
 package com.project.bank.service;
 
-import com.project.auth.security.exception.EmailNotFoundException;
 import com.project.bank.clients.CurrencyConverterClient;
 import com.project.bank.dto.CreateBankAccountDTO;
 import com.project.bank.dto.CurrencyResponse;
@@ -10,11 +9,8 @@ import com.project.bank.exception.InsufficientFundsException;
 import com.project.bank.exception.TransferNotAllowedException;
 import com.project.bank.domain.BankAccount;
 import com.project.bank.domain.TransactionEntity;
-import com.project.auth.security.domain.UserEntity;
-import com.project.auth.security.domain.UserRole;
 import com.project.bank.repository.BankAccountRepository;
 import com.project.bank.repository.TransactionEntityRepository;
-import com.project.auth.security.repository.UserEntityRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
