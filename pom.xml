@@ -14,7 +14,6 @@
     <modules>
         <module>discovery</module>
         <module>gateway</module>
-        <module>core</module>
         <module>auth</module>
         <module>mail</module>
         <module>bank</module>
@@ -42,13 +41,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
@@ -71,8 +63,15 @@
                 <scope>import</scope>
             </dependency>
         </dependencies>
-
-
     </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
