@@ -28,6 +28,7 @@ public class TokenJwtService {
                     .withSubject(user.getEmail())
                     .withClaim("userId", user.getId())
                     .withClaim("username", user.getUsername())
+                    .withClaim("role", user.getRoles().name())
                     .withExpiresAt(generateExpirationTime())
                     .sign(algorithm);
         } catch (JWTCreationException e) {
