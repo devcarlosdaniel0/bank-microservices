@@ -1,7 +1,6 @@
 package com.project.bank.service;
 
 import com.project.bank.clients.CurrencyConverterClient;
-import com.project.bank.domain.AuthUser;
 import com.project.bank.domain.BankAccount;
 import com.project.bank.domain.TransactionEntity;
 import com.project.bank.dto.CurrencyResponse;
@@ -13,7 +12,9 @@ import com.project.bank.exception.TransferNotAllowedException;
 import com.project.bank.repository.BankAccountRepository;
 import com.project.bank.repository.TransactionEntityRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,9 +35,9 @@ public class TransactionService {
             throw new TransferNotAllowedException("Transfer value must be greater than zero.");
         }
 
-        Long userIdFromToken = getUserIdFromToken();
+        String keycloakUserId = getKeycloakUserIdFromToken();
 
-        BankAccount sender = getBankAccountFromUserId(userIdFromToken);
+        BankAccount sender = getBankAccountFromKeycloakUserId(keycloakUserId);
         BankAccount receiver = bankAccountRepository.findByAccountEmail(transferDTO.receiverAccountEmail())
                 .orElseThrow(() -> new RuntimeException(String.format("Email: %s was not found", transferDTO.receiverAccountEmail())));
 
@@ -113,14 +114,24 @@ public class TransactionService {
                 .build();
     }
 
-    private Long getUserIdFromToken() {
-        AuthUser authUser = (AuthUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    private Jwt getTokenJwt() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        return authUser.id();
+        if (auth.getPrincipal() instanceof Jwt jwt) {
+            return jwt;
+        } else {
+            throw new RuntimeException("Token not found");
+        }
     }
 
-    private BankAccount getBankAccountFromUserId(Long userId) {
-        return bankAccountRepository.findByUserId(userId)
+    private String getKeycloakUserIdFromToken() {
+        Jwt jwt = getTokenJwt();
+        return jwt.getClaim("sub");
+    }
+
+
+    private BankAccount getBankAccountFromKeycloakUserId(String userId) {
+        return bankAccountRepository.findByKeycloakUserId(userId)
                 .orElseThrow(() -> new BankAccountNotFoundException("User does not have a bank account"));
     }
 }

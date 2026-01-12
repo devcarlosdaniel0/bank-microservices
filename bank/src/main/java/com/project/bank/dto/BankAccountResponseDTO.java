@@ -14,8 +14,8 @@ import java.util.UUID;
 @Data
 @Builder
 public class BankAccountResponseDTO {
-    private UUID id;
-    private Long userId;
+    private String id;
+    private String keycloakUserId;
     private String email;
     private String accountName;
     private BigDecimal balance;

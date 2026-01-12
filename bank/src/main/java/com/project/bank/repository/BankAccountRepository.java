@@ -8,8 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface BankAccountRepository extends JpaRepository<BankAccount, UUID> {
+public interface BankAccountRepository extends JpaRepository<BankAccount, String> {
     Optional<BankAccount> findByAccountEmail(String accountEmail);
 
-    Optional<BankAccount> findByUserId(Long userId);
+    Optional<BankAccount> findByKeycloakUserId(String keycloakUserId);
 }

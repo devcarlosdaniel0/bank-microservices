@@ -3,11 +3,13 @@ package com.project.bank.domain;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Currency;
-import java.util.UUID;
 
 @Entity
 @Table(name = "tb_bank_account")
@@ -19,10 +21,10 @@ public class BankAccount  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     @NotNull
-    private Long userId;
+    private String keycloakUserId;
 
     @NotNull
     @Email

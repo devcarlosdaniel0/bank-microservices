@@ -1,6 +1,5 @@
 package com.project.bank.service;
 
-import com.project.bank.domain.AuthUser;
 import com.project.bank.domain.BankAccount;
 import com.project.bank.dto.*;
 import com.project.bank.exception.*;
@@ -9,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,15 +25,14 @@ public class BankAccountService {
 
     @Transactional
     public BankAccountResponseDTO createBankAccount(CreateBankAccountDTO createBankAccountDTO) {
-        Long userIdFromToken = getUserIdFromToken();
+        String keycloakUserId = getKeycloakUserIdFromToken();
 
-        AuthUser authUser = (AuthUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Jwt jwt = getTokenJwt();
+        String email = jwt.getClaim("email");
+        String username = jwt.getClaim("preferred_username");
+        Boolean isConfirmed = jwt.getClaim("email_verified");
 
-        String email = authUser.email();
-        String username = authUser.username();
-        boolean isConfirmed = authUser.isConfirmed();
-
-        if (bankAccountRepository.findByUserId(userIdFromToken).isPresent()) {
+        if (bankAccountRepository.findByKeycloakUserId(keycloakUserId).isPresent()) {
             throw new UserAlreadyHasBankAccountException("User already has a bank account");
         }
 
@@ -43,7 +43,7 @@ public class BankAccountService {
         Currency currency = getCurrencyByCurrencyCode(createBankAccountDTO.currencyCode());
 
         BankAccount bankAccount = BankAccount.builder()
-                .userId(userIdFromToken)
+                .keycloakUserId(keycloakUserId)
                 .accountEmail(email)
                 .accountName(username)
                 .balance(BigDecimal.ZERO)
@@ -69,9 +69,9 @@ public class BankAccountService {
     }
 
     public BalanceResponseDTO checkBalance() {
-        Long userIdFromToken = getUserIdFromToken();
+        String keycloakUserId = getKeycloakUserIdFromToken();
 
-        BankAccount bankAccount = getBankAccountFromUserId(userIdFromToken);
+        BankAccount bankAccount = getBankAccountFromKeycloakUserId(keycloakUserId);
 
         BigDecimal balance = bankAccount.getBalance();
         String currency = bankAccount.getCurrency().getCurrencyCode();
@@ -84,18 +84,18 @@ public class BankAccountService {
 
     @Transactional
     public BankAccountResponseDTO addBalance(UpdateBalanceDTO updateBalanceDTO) {
-        Long userIdFromToken = getUserIdFromToken();
+        String keycloakUserId = getKeycloakUserIdFromToken();
 
-        BankAccount bankAccount = getBankAccountFromUserId(userIdFromToken);
+        BankAccount bankAccount = getBankAccountFromKeycloakUserId(keycloakUserId);
 
         return updateBalance(bankAccount, updateBalanceDTO.value(), Operation.ADD);
     }
 
     @Transactional
     public BankAccountResponseDTO withdrawalBalance(UpdateBalanceDTO updateBalanceDTO) {
-        Long userIdFromToken = getUserIdFromToken();
+        String keycloakUserId = getKeycloakUserIdFromToken();
 
-        BankAccount bankAccount = getBankAccountFromUserId(userIdFromToken);
+        BankAccount bankAccount = getBankAccountFromKeycloakUserId(keycloakUserId);
 
         return updateBalance(bankAccount, updateBalanceDTO.value(), Operation.SUBTRACT);
     }
@@ -131,14 +131,23 @@ public class BankAccountService {
         }
     }
 
-    private Long getUserIdFromToken() {
-        AuthUser authUser = (AuthUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    private Jwt getTokenJwt() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        return authUser.id();
+        if (auth.getPrincipal() instanceof Jwt jwt) {
+            return jwt;
+        } else {
+            throw new RuntimeException("Token not found");
+        }
     }
 
-    private BankAccount getBankAccountFromUserId(Long userId) {
-        return bankAccountRepository.findByUserId(userId)
+    private String getKeycloakUserIdFromToken() {
+        Jwt jwt = getTokenJwt();
+        return jwt.getClaim("sub");
+    }
+
+    private BankAccount getBankAccountFromKeycloakUserId(String keycloakUserId) {
+        return bankAccountRepository.findByKeycloakUserId(keycloakUserId)
                 .orElseThrow(() -> new BankAccountNotFoundException("User does not have a bank account"));
     }
 }
