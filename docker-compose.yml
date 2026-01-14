@@ -1,13 +1,13 @@
 services:
-  bank_db:
-    container_name: bank_db
+  accounts_db:
+    container_name: accounts_db
     image: mysql:8.0
     environment:
       - MYSQL_ROOT_PASSWORD=root
     ports:
       - "3306:3306"
     volumes:
-      - bank_db:/var/lib/mysql
+      - accounts_db:/var/lib/mysql
     networks:
       - ms_network
 
@@ -16,4 +16,4 @@ networks:
     driver: bridge
 
 volumes:
-  bank_db:
+  accounts_db:
