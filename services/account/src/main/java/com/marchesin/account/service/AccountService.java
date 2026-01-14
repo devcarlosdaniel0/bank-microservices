@@ -2,48 +2,37 @@ package com.marchesin.account.service;
 
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.dto.AccountResponse;
+import com.marchesin.account.dto.AuthenticatedUser;
 import com.marchesin.account.dto.CreateAccountRequest;
+import com.marchesin.account.exception.UserAlreadyHasAccount;
+import com.marchesin.account.exception.UserEmailNotVerified;
+import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.Currency;
 
 @Service
 @RequiredArgsConstructor
 public class AccountService {
     private final AccountRepository repository;
+    private final AccountMapper mapper;
 
-    public AccountResponse createAccount(Jwt jwt, CreateAccountRequest request) {
-        String userId = jwt.getSubject();
-        String email = jwt.getClaim("email");
-        String ownerName = jwt.getClaim("name");
+    public AccountResponse createAccount(AuthenticatedUser user, CreateAccountRequest request) {
+        if (repository.existsByUserId(user.id())) {
+            throw new UserAlreadyHasAccount("User already has an account");
+        }
 
-        Currency currency = request.currency();
-
-        if (repository.findByUserId(userId).isPresent()) {
-            throw new RuntimeException("User already has a account");
+        if (!user.isEmailVerified()) {
+            throw new UserEmailNotVerified("User email is not verified");
         }
 
         Account account = Account.builder()
-                .userId(userId)
-                .ownerName(ownerName)
-                .email(email)
-                .currency(currency)
-                .createdAt(LocalDateTime.now())
+                .userId(user.id())
+                .ownerName(user.name())
+                .email(user.email())
+                .currency(request.currency())
                 .build();
 
-        repository.save(account);
-
-        return new AccountResponse(
-                account.getId(),
-                account.getUserId(),
-                account.getOwnerName(),
-                account.getEmail(),
-                account.getCurrency(),
-                account.getCreatedAt()
-        );
+        return mapper.fromAccount(repository.save(account));
     }
 }

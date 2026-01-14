@@ -1,23 +1,22 @@
 package com.marchesin.account.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.Currency;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "tb_account")
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Account {
 
     @Id
@@ -31,11 +30,12 @@ public class Account {
     private String ownerName;
 
     @NotNull
-    @Email
     private String email;
 
     @NotNull
     private Currency currency;
-    
+
+    @CreatedDate
+    @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
 }
