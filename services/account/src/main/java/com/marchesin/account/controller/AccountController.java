@@ -23,7 +23,7 @@ public class AccountController {
     private final AccountService service;
     private final JwtUserMapper jwtUserMapper;
 
-    @PostMapping
+    @PostMapping("create")
     public ResponseEntity<AccountResponse> createAccount(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid CreateAccountRequest request
@@ -34,7 +34,7 @@ public class AccountController {
         return new ResponseEntity<>(service.createAccount(user, request), HttpStatus.CREATED);
     }
 
-    @GetMapping
+    @GetMapping("find-all")
     public ResponseEntity<Page<AccountResponse>> findAll(Pageable pageable) {
 
         return new ResponseEntity<>(service.findAll(pageable), HttpStatus.OK);
