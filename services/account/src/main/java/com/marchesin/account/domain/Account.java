@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.util.Currency;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -33,9 +32,19 @@ public class Account {
     private String email;
 
     @NotNull
-    private Currency currency;
+    @Column(length = 3)
+    @Getter(AccessLevel.NONE)
+    private String currencyCode;
 
     @CreatedDate
     @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
+
+    public Currency getCurrency() {
+        return Currency.getInstance(currencyCode);
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currencyCode = currency.getCurrencyCode();
+    }
 }

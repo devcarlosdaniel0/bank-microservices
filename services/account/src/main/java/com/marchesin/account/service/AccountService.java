@@ -30,7 +30,7 @@ public class AccountService {
                 .userId(user.id())
                 .ownerName(user.name())
                 .email(user.email())
-                .currency(request.currency())
+                .currencyCode(request.currency().getCurrencyCode())
                 .build();
 
         return mapper.fromAccount(repository.save(account));
