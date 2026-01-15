@@ -7,14 +7,13 @@ import com.marchesin.account.mapper.JwtUserMapper;
 import com.marchesin.account.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,5 +32,11 @@ public class AccountController {
         AuthenticatedUser user = jwtUserMapper.from(jwt);
 
         return new ResponseEntity<>(service.createAccount(user, request), HttpStatus.CREATED);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<AccountResponse>> findAll(Pageable pageable) {
+
+        return new ResponseEntity<>(service.findAll(pageable), HttpStatus.OK);
     }
 }

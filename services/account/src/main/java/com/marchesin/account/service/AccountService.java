@@ -9,6 +9,8 @@ import com.marchesin.account.exception.UserEmailNotVerified;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,5 +36,11 @@ public class AccountService {
                 .build();
 
         return mapper.fromAccount(repository.save(account));
+    }
+
+    public Page<AccountResponse> findAll(Pageable pageable) {
+        Page<Account> accounts = repository.findAll(pageable);
+
+        return accounts.map(mapper::fromAccount);
     }
 }
