@@ -35,7 +35,7 @@ public class AccountController {
         return new ResponseEntity<>(service.createAccount(user, request), HttpStatus.CREATED);
     }
 
-    @PutMapping
+    @PutMapping("update")
     public ResponseEntity<AccountResponse> updateAccount(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid UpdateAccountRequest request
