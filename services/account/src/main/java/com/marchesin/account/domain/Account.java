@@ -26,12 +26,6 @@ public class Account {
     private String userId;
 
     @NotNull
-    private String ownerName;
-
-    @NotNull
-    private String email;
-
-    @NotNull
     @Column(length = 3)
     @Getter(AccessLevel.NONE)
     private String currencyCode;

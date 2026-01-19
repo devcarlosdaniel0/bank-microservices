@@ -4,6 +4,8 @@ import com.marchesin.account.domain.Account;
 import com.marchesin.account.dto.AccountResponse;
 import com.marchesin.account.dto.AuthenticatedUser;
 import com.marchesin.account.dto.CreateAccountRequest;
+import com.marchesin.account.dto.UpdateAccountRequest;
+import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
 import com.marchesin.account.mapper.AccountMapper;
@@ -12,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import javax.security.auth.login.AccountNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -30,10 +34,20 @@ public class AccountService {
 
         Account account = Account.builder()
                 .userId(user.id())
-                .ownerName(user.name())
-                .email(user.email())
-                .currencyCode(request.currency().getCurrencyCode())
                 .build();
+
+        account.setCurrency(request.currency());
+
+        return mapper.fromAccount(repository.save(account));
+    }
+
+    public AccountResponse updateAccount(AuthenticatedUser user, UpdateAccountRequest request) {
+        Account account = repository.findByUserId(user.id())
+                .orElseThrow(() -> new AccountNotFound("Account was not found"));
+
+        if (request.currency() != null) {
+            account.setCurrency(request.currency());
+        }
 
         return mapper.fromAccount(repository.save(account));
     }

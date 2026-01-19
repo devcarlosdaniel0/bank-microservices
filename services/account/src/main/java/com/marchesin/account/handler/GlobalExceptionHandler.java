@@ -1,5 +1,6 @@
 package com.marchesin.account.handler;
 
+import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,14 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problemDetail);
+    }
+
+    @ExceptionHandler(AccountNotFound.class)
+    public ResponseEntity<ProblemDetail> handlerAccountNotFound(AccountNotFound e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

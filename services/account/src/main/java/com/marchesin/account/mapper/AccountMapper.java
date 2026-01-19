@@ -15,8 +15,6 @@ public class AccountMapper {
         return new AccountResponse(
                 account.getId(),
                 account.getUserId(),
-                account.getOwnerName(),
-                account.getEmail(),
                 account.getCurrency(),
                 account.getCreatedAt()
         );

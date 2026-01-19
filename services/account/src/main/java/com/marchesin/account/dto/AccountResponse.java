@@ -6,8 +6,6 @@ import java.util.Currency;
 public record AccountResponse(
         String id,
         String userId,
-        String ownerName,
-        String email,
         Currency currency,
         LocalDateTime createdAt
 ) {

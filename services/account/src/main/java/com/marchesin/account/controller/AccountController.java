@@ -3,6 +3,7 @@ package com.marchesin.account.controller;
 import com.marchesin.account.dto.AccountResponse;
 import com.marchesin.account.dto.AuthenticatedUser;
 import com.marchesin.account.dto.CreateAccountRequest;
+import com.marchesin.account.dto.UpdateAccountRequest;
 import com.marchesin.account.mapper.JwtUserMapper;
 import com.marchesin.account.service.AccountService;
 import jakarta.validation.Valid;
@@ -32,6 +33,16 @@ public class AccountController {
         AuthenticatedUser user = jwtUserMapper.from(jwt);
 
         return new ResponseEntity<>(service.createAccount(user, request), HttpStatus.CREATED);
+    }
+
+    @PutMapping
+    public ResponseEntity<AccountResponse> updateAccount(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid UpdateAccountRequest request
+            ) {
+        AuthenticatedUser user = jwtUserMapper.from(jwt);
+
+        return new ResponseEntity<>(service.updateAccount(user, request), HttpStatus.OK);
     }
 
     @GetMapping("find-all")
