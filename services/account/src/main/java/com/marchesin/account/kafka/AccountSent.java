@@ -1,7 +1,8 @@
 package com.marchesin.account.kafka;
 
-public record AccountCreated(
+public record AccountSent(
         String accountId,
+        String userId,
         String currencyCode
 ) {
 }

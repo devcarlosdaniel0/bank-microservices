@@ -12,14 +12,14 @@ import static org.springframework.kafka.support.KafkaHeaders.TOPIC;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AccountCreatedProducer {
+public class AccountProducer {
 
-    private final KafkaTemplate<String, AccountCreated> kafkaTemplate;
+    private final KafkaTemplate<String, AccountSent> kafkaTemplate;
 
-    public void sendAccountCreated(AccountCreated accountCreated) {
-        log.info("Producing account created topic");
-        Message<AccountCreated> message = MessageBuilder
-                .withPayload(accountCreated)
+    public void sendAccount(AccountSent accountSent) {
+        log.info("Producing for account created topic");
+        Message<AccountSent> message = MessageBuilder
+                .withPayload(accountSent)
                 .setHeader(TOPIC, "account-created-topic")
                 .build();
 

@@ -8,7 +8,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.Currency;
 
 @Getter
 @NoArgsConstructor
@@ -29,7 +28,6 @@ public class Account {
 
     @NotNull
     @Column(length = 3)
-    @Getter(AccessLevel.NONE)
     private String currencyCode;
 
     @CreatedDate
@@ -40,11 +38,7 @@ public class Account {
     @Column(insertable = false)
     private LocalDateTime lastModifiedDate;
 
-    public Currency getCurrency() {
-        return Currency.getInstance(currencyCode);
-    }
-
-    public void setCurrency(Currency currency) {
-        this.currencyCode = currency.getCurrencyCode();
+    public void setCurrencyCode(String currencyCode) {
+        this.currencyCode = currencyCode;
     }
 }

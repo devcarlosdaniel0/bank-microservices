@@ -8,8 +8,8 @@ import com.marchesin.account.dto.UpdateAccountRequest;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
-import com.marchesin.account.kafka.AccountCreated;
-import com.marchesin.account.kafka.AccountCreatedProducer;
+import com.marchesin.account.kafka.AccountSent;
+import com.marchesin.account.kafka.AccountProducer;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
 import jakarta.transaction.Transactional;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 public class AccountService {
     private final AccountRepository repository;
     private final AccountMapper mapper;
-    private final AccountCreatedProducer producer;
+    private final AccountProducer producer;
 
     @Transactional
     public AccountResponse createAccount(AuthenticatedUser user, CreateAccountRequest request) {
@@ -37,23 +37,29 @@ public class AccountService {
 
         Account account = Account.builder()
                 .userId(user.id())
+                .currencyCode(request.currency().getCurrencyCode())
                 .build();
-
-        account.setCurrency(request.currency());
 
         Account savedAccount = repository.save(account);
 
-        producer.sendAccountCreated(new AccountCreated(savedAccount.getId(), savedAccount.getCurrency().getCurrencyCode()));
+        AccountSent accountSent = new AccountSent(
+                savedAccount.getId(),
+                savedAccount.getUserId(),
+                savedAccount.getCurrencyCode()
+        );
+
+        producer.sendAccount(accountSent);
 
         return mapper.fromAccount(savedAccount);
     }
 
+    @Transactional
     public AccountResponse updateAccount(AuthenticatedUser user, UpdateAccountRequest request) {
         Account account = repository.findByUserId(user.id())
                 .orElseThrow(() -> new AccountNotFound("Account was not found"));
 
         if (request.currency() != null) {
-            account.setCurrency(request.currency());
+            account.setCurrencyCode(request.currency().getCurrencyCode());
         }
 
         return mapper.fromAccount(repository.save(account));

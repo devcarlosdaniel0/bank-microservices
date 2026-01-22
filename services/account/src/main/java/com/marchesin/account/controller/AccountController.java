@@ -29,7 +29,6 @@ public class AccountController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid CreateAccountRequest request
     ) {
-
         AuthenticatedUser user = jwtUserMapper.from(jwt);
 
         return new ResponseEntity<>(service.createAccount(user, request), HttpStatus.CREATED);
@@ -39,7 +38,7 @@ public class AccountController {
     public ResponseEntity<AccountResponse> updateAccount(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid UpdateAccountRequest request
-            ) {
+    ) {
         AuthenticatedUser user = jwtUserMapper.from(jwt);
 
         return new ResponseEntity<>(service.updateAccount(user, request), HttpStatus.OK);

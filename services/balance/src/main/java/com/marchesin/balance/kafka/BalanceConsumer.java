@@ -14,13 +14,10 @@ public class BalanceConsumer {
     private final BalanceService balanceService;
 
     @KafkaListener(topics = "account-created-topic", groupId = "balance-group")
-    public void consumeAccountCreated(AccountCreated accountCreated) {
-        log.info("Consuming account created topic for account ID: {}", accountCreated.accountId());
+    public void consumeAccountCreated(Account account) {
+        log.info("Consuming account created topic for account ID: {}", account.accountId());
 
-        balanceService.createInitialBalance(
-                accountCreated.accountId(),
-                accountCreated.currencyCode()
-        );
+        balanceService.createInitialBalance(account);
     }
 
 } 

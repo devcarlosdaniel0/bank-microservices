@@ -29,8 +29,11 @@ public class Balance {
     private String accountId;
 
     @NotNull
+    @Column(unique = true)
+    private String userId;
+
+    @NotNull
     @Column(length = 3)
-    @Getter(AccessLevel.NONE)
     private String currencyCode;
 
     @NotNull
@@ -43,12 +46,4 @@ public class Balance {
     @LastModifiedDate
     @Column(insertable = false)
     private LocalDateTime lastModifiedDate;
-
-    public Currency getCurrency() {
-        return Currency.getInstance(currencyCode);
-    }
-
-    public void setCurrency(Currency currency) {
-        this.currencyCode = currency.getCurrencyCode();
-    }
 }

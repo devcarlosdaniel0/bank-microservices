@@ -10,5 +10,6 @@ import java.util.Optional;
 public interface BalanceRepository extends JpaRepository<Balance, String> {
 
     Optional<Balance> findByAccountId(String accountId);
+    Optional<Balance> findByUserId(String userId);
     boolean existsByAccountId(String accountId);
 }
