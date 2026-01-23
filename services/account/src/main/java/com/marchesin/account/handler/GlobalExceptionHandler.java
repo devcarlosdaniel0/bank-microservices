@@ -1,6 +1,7 @@
 package com.marchesin.account.handler;
 
 import com.marchesin.account.exception.AccountNotFound;
+import com.marchesin.account.exception.SameCurrencyException;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,14 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+    }
+
+    @ExceptionHandler(SameCurrencyException.class)
+    public ResponseEntity<ProblemDetail> handlerSameCurrencyException(SameCurrencyException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

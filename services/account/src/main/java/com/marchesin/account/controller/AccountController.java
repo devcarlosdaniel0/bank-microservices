@@ -7,7 +7,6 @@ import com.marchesin.account.dto.UpdateAccountRequest;
 import com.marchesin.account.mapper.JwtUserMapper;
 import com.marchesin.account.service.AccountService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -17,12 +16,16 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/v1/account")
 public class AccountController {
 
     private final AccountService service;
     private final JwtUserMapper jwtUserMapper;
+
+    public AccountController(AccountService service, JwtUserMapper jwtUserMapper) {
+        this.service = service;
+        this.jwtUserMapper = jwtUserMapper;
+    }
 
     @PostMapping("create")
     public ResponseEntity<AccountResponse> createAccount(

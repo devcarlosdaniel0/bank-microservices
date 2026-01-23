@@ -1,11 +1,9 @@
 package com.marchesin.account.dto;
 
-import jakarta.validation.constraints.NotNull;
-
-import java.util.Currency;
+import jakarta.validation.constraints.NotBlank;
 
 public record CreateAccountRequest(
-        @NotNull(message = "Currency is mandatory")
-        Currency currency
+        @NotBlank(message = "Currency is mandatory and cant be empty or null")
+        String currencyCode
 ) {
 }
