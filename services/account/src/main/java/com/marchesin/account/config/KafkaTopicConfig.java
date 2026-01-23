@@ -9,9 +9,16 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaTopicConfig {
 
     @Bean
-    public NewTopic orderTopic() {
+    public NewTopic accountCreatedTopic() {
         return TopicBuilder
                 .name("account-created-topic")
+                .build();
+    }
+
+    @Bean
+    public NewTopic accountDeletedTopic() {
+        return TopicBuilder
+                .name("account-deleted-topic")
                 .build();
     }
 }

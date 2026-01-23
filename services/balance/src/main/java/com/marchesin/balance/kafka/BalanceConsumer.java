@@ -15,9 +15,16 @@ public class BalanceConsumer {
 
     @KafkaListener(topics = "account-created-topic", groupId = "balance-group")
     public void consumeAccountCreated(Account account) {
-        log.info("Consuming account created topic for account ID: {}", account.accountId());
+        log.info("Consuming 'account created topic' for account ID: {}", account.accountId());
 
         balanceService.createInitialBalance(account);
+    }
+
+    @KafkaListener(topics = "account-deleted-topic", groupId = "balance-group")
+    public void consumeAccountDeleted(String accountId) {
+        log.info("Consuming 'account deleted topic' for account ID: {}", accountId);
+
+        balanceService.deleteBalance(accountId);
     }
 
 } 

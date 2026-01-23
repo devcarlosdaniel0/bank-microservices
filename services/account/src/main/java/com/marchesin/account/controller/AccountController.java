@@ -49,4 +49,15 @@ public class AccountController {
 
         return new ResponseEntity<>(service.findAll(pageable), HttpStatus.OK);
     }
+
+    @DeleteMapping("delete")
+    public ResponseEntity<Void> delete(
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        AuthenticatedUser user = jwtUserMapper.from(jwt);
+
+        service.deleteAccount(user);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

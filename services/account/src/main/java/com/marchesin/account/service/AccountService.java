@@ -8,7 +8,7 @@ import com.marchesin.account.dto.UpdateAccountRequest;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
-import com.marchesin.account.kafka.AccountSent;
+import com.marchesin.account.kafka.AccountCreated;
 import com.marchesin.account.kafka.AccountProducer;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
@@ -42,13 +42,13 @@ public class AccountService {
 
         Account savedAccount = repository.save(account);
 
-        AccountSent accountSent = new AccountSent(
+        AccountCreated accountCreated = new AccountCreated(
                 savedAccount.getId(),
                 savedAccount.getUserId(),
                 savedAccount.getCurrencyCode()
         );
 
-        producer.sendAccount(accountSent);
+        producer.sendAccountCreated(accountCreated);
 
         return mapper.fromAccount(savedAccount);
     }
@@ -69,5 +69,15 @@ public class AccountService {
         Page<Account> accounts = repository.findAll(pageable);
 
         return accounts.map(mapper::fromAccount);
+    }
+
+    @Transactional
+    public void deleteAccount(AuthenticatedUser user) {
+        Account account = repository.findByUserId(user.id())
+                .orElseThrow(() -> new AccountNotFound("Account was not found"));
+
+        repository.delete(account);
+
+        producer.sendAccountDeleted(account.getId());
     }
 }

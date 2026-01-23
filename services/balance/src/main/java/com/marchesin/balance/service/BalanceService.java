@@ -42,4 +42,12 @@ public class BalanceService {
 
         return mapper.fromBalance(balance);
     }
+
+    @Transactional
+    public void deleteBalance(String accountId) {
+        if (repository.existsByAccountId(accountId)) {
+            repository.deleteByAccountId(accountId);
+            log.info("Balance deleted for account ID: {}", accountId);
+        }
+    }
 }
