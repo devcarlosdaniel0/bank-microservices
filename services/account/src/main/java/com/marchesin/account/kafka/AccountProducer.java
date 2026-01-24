@@ -17,12 +17,16 @@ public class AccountProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendAccountCreated(AccountCreated accountCreated) {
-        send("account-created-topic", accountCreated);
+    public void sendAccountCreated(AccountTopicSent accountTopicSent) {
+        send("account-created-topic", accountTopicSent);
     }
 
     public void sendAccountDeleted(String accountId) {
         send("account-deleted-topic", accountId);
+    }
+
+    public void sendAccountUpdated(AccountTopicSent accountTopicSent) {
+        send("account-updated-topic", accountTopicSent);
     }
 
     private void send(String topic, Object payload) {

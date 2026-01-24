@@ -21,4 +21,11 @@ public class KafkaTopicConfig {
                 .name("account-deleted-topic")
                 .build();
     }
+
+    @Bean
+    public NewTopic accountUpdatedTopic() {
+        return TopicBuilder
+                .name("account-updated-topic")
+                .build();
+    }
 }

@@ -9,7 +9,7 @@ import com.marchesin.account.dto.UpdateAccountRequest;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
-import com.marchesin.account.kafka.AccountCreated;
+import com.marchesin.account.kafka.AccountTopicSent;
 import com.marchesin.account.kafka.AccountProducer;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
@@ -44,16 +44,18 @@ public class AccountService {
 
         Account savedAccount = repository.save(account);
 
-        AccountCreated accountCreated = new AccountCreated(
+        AccountTopicSent accountTopicSent = new AccountTopicSent(
                 savedAccount.getId(),
                 savedAccount.getUserId(),
                 savedAccount.getCurrencyCode()
         );
 
-        producer.sendAccountCreated(accountCreated);
+        producer.sendAccountCreated(accountTopicSent);
 
         return mapper.fromAccount(savedAccount);
     }
+
+    // TODO: Método precisa atualizar o Balance e depois fazer uma conversão de moedas no Balance Service
 
     @Transactional
     public AccountResponse updateAccount(AuthenticatedUser user, UpdateAccountRequest request) {
@@ -61,6 +63,14 @@ public class AccountService {
                 .orElseThrow(() -> new AccountNotFound("Account was not found"));
 
         account.changeCurrency(new CurrencyCode(request.currencyCode()));
+
+        AccountTopicSent accountTopicSent = new AccountTopicSent(
+                account.getId(),
+                account.getUserId(),
+                account.getCurrencyCode()
+        );
+
+        producer.sendAccountUpdated(accountTopicSent);
 
         return mapper.fromAccount(account);
     }

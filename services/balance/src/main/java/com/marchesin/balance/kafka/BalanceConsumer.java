@@ -27,4 +27,11 @@ public class BalanceConsumer {
         balanceService.deleteBalance(accountId);
     }
 
+    @KafkaListener(topics = "account-updated-topic", groupId = "balance-group")
+    public void consumeAccountUpdated(Account account) {
+        log.info("Consuming 'account updated topic' for account ID: {}", account.accountId());
+
+        balanceService.updateBalance(account);
+    }
+
 } 

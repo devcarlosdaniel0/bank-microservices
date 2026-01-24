@@ -50,4 +50,13 @@ public class BalanceService {
             log.info("Balance deleted for account ID: {}", accountId);
         }
     }
+
+    @Transactional
+    // TODO CONVERTER MOEDAS
+    public void updateBalance(Account account) {
+        Balance balance = repository.findByAccountId(account.accountId())
+                .orElseThrow(() -> new RuntimeException("Balance not found"));
+
+        balance.setCurrencyCode(account.currencyCode());
+    }
 }
