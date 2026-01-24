@@ -7,11 +7,14 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class BalanceConsumer {
 
     private final BalanceService balanceService;
+
+    public BalanceConsumer(BalanceService balanceService) {
+        this.balanceService = balanceService;
+    }
 
     @KafkaListener(topics = "account-created-topic", groupId = "balance-group")
     public void consumeAccountCreated(Account account) {

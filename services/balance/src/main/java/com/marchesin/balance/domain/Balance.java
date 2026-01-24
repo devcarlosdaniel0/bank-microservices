@@ -10,13 +10,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Entity
 @Table(name = "tb_balance")
 @EntityListeners(AuditingEntityListener.class)
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Balance {
 
     @Id
@@ -46,4 +44,11 @@ public class Balance {
     @LastModifiedDate
     @Column(insertable = false)
     private LocalDateTime lastModifiedDate;
+
+    public Balance(String accountId, String userId, String currencyCode, BigDecimal amount) {
+        this.accountId = accountId;
+        this.userId = userId;
+        this.currencyCode = currencyCode;
+        this.amount = amount;
+    }
 }
