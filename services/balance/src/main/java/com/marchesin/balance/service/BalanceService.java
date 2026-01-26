@@ -2,6 +2,8 @@ package com.marchesin.balance.service;
 
 import com.marchesin.balance.domain.Balance;
 import com.marchesin.balance.dto.BalanceResponse;
+import com.marchesin.balance.exception.BalanceAlreadyExists;
+import com.marchesin.balance.exception.BalanceNotFound;
 import com.marchesin.balance.kafka.Account;
 import com.marchesin.balance.mapper.BalanceMapper;
 import com.marchesin.balance.repository.BalanceRepository;
@@ -25,7 +27,7 @@ public class BalanceService {
     @Transactional
     public void createInitialBalance(Account account) {
         if (repository.existsByAccountId(account.accountId())) {
-            throw new RuntimeException("Saldo já existe para conta:: " + account.accountId());
+            throw new BalanceAlreadyExists("Balance already exists for account ID: " + account.accountId());
         }
 
         Balance balance = new Balance(
@@ -41,7 +43,7 @@ public class BalanceService {
 
     public BalanceResponse getBalance(String userId) {
         Balance balance = repository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Balance not found"));
+                .orElseThrow(() -> new BalanceNotFound("Balance not found"));
 
         return mapper.fromBalance(balance);
     }
@@ -58,7 +60,7 @@ public class BalanceService {
     // TODO CONVERTER MOEDAS
     public void updateBalance(Account account) {
         Balance balance = repository.findByAccountId(account.accountId())
-                .orElseThrow(() -> new RuntimeException("Balance not found"));
+                .orElseThrow(() -> new BalanceNotFound("Balance not found"));
 
         balance.setCurrencyCode(account.currencyCode());
     }
