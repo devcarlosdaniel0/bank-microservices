@@ -1,5 +1,6 @@
 package com.marchesin.balance.domain;
 
+import com.marchesin.balance.exception.AmountCantBeNegativeOrZero;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -50,5 +51,14 @@ public class Balance {
         this.userId = userId;
         this.currencyCode = currencyCode;
         this.amount = amount;
+    }
+
+    public void add(BigDecimal amount) {
+
+        if (amount.compareTo(BigDecimal.ZERO) < 0 || amount.compareTo(BigDecimal.ZERO) == 0) {
+            throw new AmountCantBeNegativeOrZero("Amount cant be negative or zero");
+        }
+
+        this.amount = this.amount.add(amount);
     }
 }

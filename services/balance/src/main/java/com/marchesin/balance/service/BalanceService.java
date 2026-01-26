@@ -2,6 +2,7 @@ package com.marchesin.balance.service;
 
 import com.marchesin.balance.domain.Balance;
 import com.marchesin.balance.dto.BalanceResponse;
+import com.marchesin.balance.dto.DepositRequest;
 import com.marchesin.balance.exception.BalanceAlreadyExists;
 import com.marchesin.balance.exception.BalanceNotFound;
 import com.marchesin.balance.kafka.Account;
@@ -48,7 +49,6 @@ public class BalanceService {
         return mapper.fromBalance(balance);
     }
 
-    @Transactional
     public void deleteBalance(String accountId) {
         if (repository.existsByAccountId(accountId)) {
             repository.deleteByAccountId(accountId);
@@ -63,5 +63,15 @@ public class BalanceService {
                 .orElseThrow(() -> new BalanceNotFound("Balance not found"));
 
         balance.setCurrencyCode(account.currencyCode());
+    }
+
+    @Transactional
+    public BalanceResponse deposit(String userId, DepositRequest request) {
+        Balance balance = repository.findByUserId(userId)
+                .orElseThrow(() -> new BalanceNotFound(("Balance not found")));
+
+        balance.add(request.amount());
+
+        return mapper.fromBalance(balance);
     }
 }

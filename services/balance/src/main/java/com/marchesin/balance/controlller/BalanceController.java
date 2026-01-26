@@ -1,14 +1,14 @@
 package com.marchesin.balance.controlller;
 
 import com.marchesin.balance.dto.BalanceResponse;
+import com.marchesin.balance.dto.DepositRequest;
 import com.marchesin.balance.service.BalanceService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/balance")
@@ -24,5 +24,13 @@ public class BalanceController {
             @AuthenticationPrincipal Jwt jwt
     ) {
         return new ResponseEntity<>(service.getBalance(jwt.getSubject()), HttpStatus.OK);
+    }
+
+    @PostMapping("deposit")
+    public ResponseEntity<BalanceResponse> deposit(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid DepositRequest request
+    ) {
+        return new ResponseEntity<>(service.deposit(jwt.getSubject(), request), HttpStatus.OK);
     }
 }
