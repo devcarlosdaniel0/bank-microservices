@@ -4,6 +4,7 @@ import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
 import com.marchesin.account.exception.AccountNotFound;
+import com.marchesin.account.exception.SameAccountTransfer;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
 import com.marchesin.account.kafka.AccountTopicSent;
@@ -11,9 +12,12 @@ import com.marchesin.account.kafka.AccountProducer;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 
 @Service
 public class AccountService {
@@ -94,8 +98,50 @@ public class AccountService {
         return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
     }
 
+    @Transactional
+    public BalanceResponse deposit(String userId, DepositRequest request) {
+        Account account = getAccountFromUserId(userId);
+
+        account.deposit(request.amount());
+
+        return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
+    }
+
+    @Transactional
+    public BalanceResponse withdraw(String userId, WithdrawRequest request) {
+        Account account = getAccountFromUserId(userId);
+
+        account.withdraw(request.amount());
+
+        return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
+    }
+
+    @Transactional
+    // TODO call exchange currency
+    public TransferResponse transfer(String userId, TransferRequest request) {
+        String toAccountId = request.toAccountId();
+        BigDecimal amount = request.amount();
+
+        Account from = getAccountFromUserId(userId);
+        Account to = getAccountFromId(toAccountId);
+
+        if (from.getId().equals(to.getId())) {
+            throw new SameAccountTransfer("Cannot transfer to the same account");
+        }
+
+        from.withdraw(request.amount());
+        to.deposit(request.amount());
+
+        return new TransferResponse(from.getId(), amount, from.getCurrencyCode(), to.getId());
+    }
+
     private Account getAccountFromUserId(String userId) {
         return repository.findByUserId(userId)
-                .orElseThrow(() -> new AccountNotFound("Account was not found"));
+                .orElseThrow(() -> new AccountNotFound("Account not found"));
+    }
+
+    private Account getAccountFromId(String AccountId) {
+        return repository.findById(AccountId)
+                .orElseThrow(() -> new AccountNotFound("Account not found"));
     }
 }

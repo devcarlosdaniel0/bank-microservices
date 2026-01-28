@@ -68,27 +68,27 @@ public class AccountController {
         return new ResponseEntity<>(service.getBalance(jwt.getSubject()), HttpStatus.OK);
     }
 
-//    @PostMapping("deposit")
-//    public ResponseEntity<BalanceResponse> deposit(
-//            @AuthenticationPrincipal Jwt jwt,
-//            @RequestBody @Valid DepositRequest request
-//    ) {
-//        return new ResponseEntity<>(service.deposit(jwt.getSubject(), request), HttpStatus.OK);
-//    }
-//
-//    @PostMapping("withdraw")
-//    public ResponseEntity<BalanceResponse> withdraw(
-//            @AuthenticationPrincipal Jwt jwt,
-//            @RequestBody @Valid WithdrawalRequest request
-//    ) {
-//        return new ResponseEntity<>(service.withdraw(jwt.getSubject(), request), HttpStatus.OK);
-//    }
-//
-//    @PostMapping("transfer")
-//    public ResponseEntity<TransferResponse> transfer(
-//            @AuthenticationPrincipal Jwt jwt,
-//            @RequestBody @Valid TransferRequest request
-//    ) {
-//        return new ResponseEntity<>(service.transfer(jwt.getSubject(), request), HttpStatus.OK);
-//    }
+    @PostMapping("deposit")
+    public ResponseEntity<BalanceResponse> deposit(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid DepositRequest request
+    ) {
+        return new ResponseEntity<>(service.deposit(jwt.getSubject(), request), HttpStatus.OK);
+    }
+
+    @PostMapping("withdraw")
+    public ResponseEntity<BalanceResponse> withdraw(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid WithdrawRequest request
+    ) {
+        return new ResponseEntity<>(service.withdraw(jwt.getSubject(), request), HttpStatus.OK);
+    }
+
+    @PostMapping("transfer")
+    public ResponseEntity<TransferResponse> transfer(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid TransferRequest request
+    ) {
+        return new ResponseEntity<>(service.transfer(jwt.getSubject(), request), HttpStatus.OK);
+    }
 }
