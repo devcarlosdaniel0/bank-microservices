@@ -14,16 +14,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-
 @Service
 public class AccountService {
     private final AccountRepository repository;
     private final AccountMapper mapper;
+    private final TransactionService transactionService;
 
-    public AccountService(AccountRepository repository, AccountMapper mapper) {
+    public AccountService(AccountRepository repository, AccountMapper mapper, TransactionService transactionService) {
         this.repository = repository;
         this.mapper = mapper;
+        this.transactionService = transactionService;
     }
 
     @Transactional
@@ -78,6 +78,8 @@ public class AccountService {
 
         account.deposit(request.amount());
 
+        transactionService.saveDeposit(account, request.amount());
+
         return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
     }
 
@@ -86,6 +88,8 @@ public class AccountService {
         Account account = getAccountFromUserId(userId);
 
         account.withdraw(request.amount());
+
+        transactionService.saveWithdraw(account, request.amount());
 
         return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
     }
@@ -102,6 +106,8 @@ public class AccountService {
 
         from.withdraw(request.amount());
         to.deposit(request.amount());
+
+        transactionService.saveTransfer(from, to, request.amount());
 
         return new TransferResponse(from.getId(), request.amount(), from.getCurrencyCode(), to.getId());
     }

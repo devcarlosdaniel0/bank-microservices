@@ -47,6 +47,9 @@ public class Account {
     @Getter
     private LocalDateTime lastModifiedDate;
 
+    @Version
+    private Long version;
+
     public Account(String userId, CurrencyCode currencyCode) {
         this.userId = userId;
         this.currencyCode = currencyCode;
