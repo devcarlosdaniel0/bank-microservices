@@ -1,6 +1,7 @@
 package com.marchesin.balance.domain;
 
 import com.marchesin.balance.exception.AmountCantBeNegativeOrZero;
+import com.marchesin.balance.exception.InsufficientFunds;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -54,11 +55,25 @@ public class Balance {
     }
 
     public void add(BigDecimal amount) {
+        validatePositiveAmount(amount);
+        this.amount = this.amount.add(amount);
+    }
 
-        if (amount.compareTo(BigDecimal.ZERO) < 0 || amount.compareTo(BigDecimal.ZERO) == 0) {
+    public void subtract(BigDecimal amount) {
+        validatePositiveAmount(amount);
+        validateSufficientFunds(amount);
+        this.amount = this.amount.subtract(amount);
+    }
+
+    private void validatePositiveAmount(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new AmountCantBeNegativeOrZero("Amount cant be negative or zero");
         }
+    }
 
-        this.amount = this.amount.add(amount);
+    private void validateSufficientFunds(BigDecimal amount) {
+        if (this.amount.compareTo(amount) < 0) {
+            throw new InsufficientFunds("Insufficient founds");
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.marchesin.balance.controlller;
 
 import com.marchesin.balance.dto.BalanceResponse;
 import com.marchesin.balance.dto.DepositRequest;
+import com.marchesin.balance.dto.WithdrawalRequest;
 import com.marchesin.balance.service.BalanceService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -32,5 +33,13 @@ public class BalanceController {
             @RequestBody @Valid DepositRequest request
     ) {
         return new ResponseEntity<>(service.deposit(jwt.getSubject(), request), HttpStatus.OK);
+    }
+
+    @PostMapping("withdraw")
+    public ResponseEntity<BalanceResponse> withdraw(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid WithdrawalRequest request
+            ) {
+        return new ResponseEntity<>(service.withdraw(jwt.getSubject(), request), HttpStatus.OK);
     }
 }

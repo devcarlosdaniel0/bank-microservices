@@ -3,6 +3,7 @@ package com.marchesin.balance.handler;
 import com.marchesin.balance.exception.AmountCantBeNegativeOrZero;
 import com.marchesin.balance.exception.BalanceAlreadyExists;
 import com.marchesin.balance.exception.BalanceNotFound;
+import com.marchesin.balance.exception.InsufficientFunds;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AmountCantBeNegativeOrZero.class)
     public ResponseEntity<ProblemDetail> handlerAmountCantBeNegativeOrZero(AmountCantBeNegativeOrZero e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
+    }
+
+    @ExceptionHandler(InsufficientFunds.class)
+    public ResponseEntity<ProblemDetail> handlerInsufficientFunds(InsufficientFunds e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
         problemDetail.setProperty("timeStamp", timeFormatted());
 
