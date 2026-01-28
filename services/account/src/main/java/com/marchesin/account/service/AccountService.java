@@ -93,11 +93,8 @@ public class AccountService {
     @Transactional
     // TODO call exchange currency
     public TransferResponse transfer(String userId, TransferRequest request) {
-        String toAccountId = request.toAccountId();
-        BigDecimal amount = request.amount();
-
         Account from = getAccountFromUserId(userId);
-        Account to = getAccountFromId(toAccountId);
+        Account to = getAccountFromId(request.toAccountId());
 
         if (from.getId().equals(to.getId())) {
             throw new SameAccountTransfer("Cannot transfer to the same account");
@@ -106,7 +103,7 @@ public class AccountService {
         from.withdraw(request.amount());
         to.deposit(request.amount());
 
-        return new TransferResponse(from.getId(), amount, from.getCurrencyCode(), to.getId());
+        return new TransferResponse(from.getId(), request.amount(), from.getCurrencyCode(), to.getId());
     }
 
     private Account getAccountFromUserId(String userId) {
