@@ -1,3 +1,4 @@
+/*
 package com.marchesin.account.kafka;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,14 +22,6 @@ public class AccountProducer {
         send("account-created-topic", accountTopicSent);
     }
 
-    public void sendAccountDeleted(String accountId) {
-        send("account-deleted-topic", accountId);
-    }
-
-    public void sendAccountUpdated(AccountTopicSent accountTopicSent) {
-        send("account-updated-topic", accountTopicSent);
-    }
-
     private void send(String topic, Object payload) {
         log.info("Producing to topic {}: {}", topic, payload);
         Message<Object> message = MessageBuilder
@@ -39,3 +32,4 @@ public class AccountProducer {
         kafkaTemplate.send(message);
     }
 }
+*/

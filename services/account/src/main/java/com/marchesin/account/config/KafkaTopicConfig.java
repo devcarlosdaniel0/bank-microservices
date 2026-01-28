@@ -1,3 +1,4 @@
+/*
 package com.marchesin.account.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
@@ -14,18 +15,5 @@ public class KafkaTopicConfig {
                 .name("account-created-topic")
                 .build();
     }
-
-    @Bean
-    public NewTopic accountDeletedTopic() {
-        return TopicBuilder
-                .name("account-deleted-topic")
-                .build();
-    }
-
-    @Bean
-    public NewTopic accountUpdatedTopic() {
-        return TopicBuilder
-                .name("account-updated-topic")
-                .build();
-    }
 }
+ */

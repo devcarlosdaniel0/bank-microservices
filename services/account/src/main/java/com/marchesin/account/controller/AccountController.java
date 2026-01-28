@@ -39,9 +39,7 @@ public class AccountController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid UpdateAccountRequest request
     ) {
-        AuthenticatedUser user = jwtUserMapper.from(jwt);
-
-        return new ResponseEntity<>(service.updateAccount(user, request), HttpStatus.OK);
+        return new ResponseEntity<>(service.updateAccount(jwt.getSubject(), request), HttpStatus.OK);
     }
 
     @GetMapping("find-all")
@@ -51,20 +49,14 @@ public class AccountController {
     }
 
     @DeleteMapping("delete")
-    public ResponseEntity<Void> delete(
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        AuthenticatedUser user = jwtUserMapper.from(jwt);
-
-        service.deleteAccount(user);
+    public ResponseEntity<Void> delete(@AuthenticationPrincipal Jwt jwt) {
+        service.deleteAccount(jwt.getSubject());
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("balance")
-    public ResponseEntity<BalanceResponse> getBalance(
-            @AuthenticationPrincipal Jwt jwt
-    ) {
+    public ResponseEntity<BalanceResponse> getBalance(@AuthenticationPrincipal Jwt jwt) {
         return new ResponseEntity<>(service.getBalance(jwt.getSubject()), HttpStatus.OK);
     }
 

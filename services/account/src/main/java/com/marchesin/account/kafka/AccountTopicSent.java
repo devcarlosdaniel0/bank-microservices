@@ -1,3 +1,4 @@
+/*
 package com.marchesin.account.kafka;
 
 public record AccountTopicSent(
@@ -6,3 +7,4 @@ public record AccountTopicSent(
         String currencyCode
 ) {
 }
+ */

@@ -7,12 +7,9 @@ import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.SameAccountTransfer;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
-import com.marchesin.account.kafka.AccountTopicSent;
-import com.marchesin.account.kafka.AccountProducer;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,12 +20,10 @@ import java.math.BigDecimal;
 public class AccountService {
     private final AccountRepository repository;
     private final AccountMapper mapper;
-    private final AccountProducer producer;
 
-    public AccountService(AccountRepository repository, AccountMapper mapper, AccountProducer producer) {
+    public AccountService(AccountRepository repository, AccountMapper mapper) {
         this.repository = repository;
         this.mapper = mapper;
-        this.producer = producer;
     }
 
     @Transactional
@@ -45,33 +40,15 @@ public class AccountService {
 
         Account savedAccount = repository.save(account);
 
-        AccountTopicSent accountTopicSent = new AccountTopicSent(
-                savedAccount.getId(),
-                savedAccount.getUserId(),
-                savedAccount.getCurrencyCode()
-        );
-
-        producer.sendAccountCreated(accountTopicSent);
-
         return mapper.fromAccount(savedAccount);
     }
 
-    // TODO: Método precisa atualizar o Balance e depois fazer uma conversão de moedas no Balance Service
-
+    // TODO -> chamar exchange currency para converter o saldo atual
     @Transactional
-    public AccountResponse updateAccount(AuthenticatedUser user, UpdateAccountRequest request) {
-        Account account = repository.findByUserId(user.id())
-                .orElseThrow(() -> new AccountNotFound("Account was not found"));
+    public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
+        Account account = getAccountFromUserId(userId);
 
         account.changeCurrency(new CurrencyCode(request.currencyCode()));
-
-        AccountTopicSent accountTopicSent = new AccountTopicSent(
-                account.getId(),
-                account.getUserId(),
-                account.getCurrencyCode()
-        );
-
-        producer.sendAccountUpdated(accountTopicSent);
 
         return mapper.fromAccount(account);
     }
@@ -83,13 +60,10 @@ public class AccountService {
     }
 
     @Transactional
-    public void deleteAccount(AuthenticatedUser user) {
-        Account account = repository.findByUserId(user.id())
-                .orElseThrow(() -> new AccountNotFound("Account was not found"));
+    public void deleteAccount(String userId) {
+        Account account = getAccountFromUserId(userId);
 
         repository.delete(account);
-
-        producer.sendAccountDeleted(account.getId());
     }
 
     public BalanceResponse getBalance(String userId) {
