@@ -1,9 +1,6 @@
 package com.marchesin.balance.handler;
 
-import com.marchesin.balance.exception.AmountCantBeNegativeOrZero;
-import com.marchesin.balance.exception.BalanceAlreadyExists;
-import com.marchesin.balance.exception.BalanceNotFound;
-import com.marchesin.balance.exception.InsufficientFunds;
+import com.marchesin.balance.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +32,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AmountCantBeNegativeOrZero.class)
     public ResponseEntity<ProblemDetail> handlerAmountCantBeNegativeOrZero(AmountCantBeNegativeOrZero e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
+    }
+
+    @ExceptionHandler(SameAccountTransfer.class)
+    public ResponseEntity<ProblemDetail> handlerSameAccountTransfer(SameAccountTransfer e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
         problemDetail.setProperty("timeStamp", timeFormatted());
 

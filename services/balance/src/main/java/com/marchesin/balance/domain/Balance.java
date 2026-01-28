@@ -65,15 +65,15 @@ public class Balance {
         this.amount = this.amount.subtract(amount);
     }
 
-    private void validatePositiveAmount(BigDecimal amount) {
+    public static void validatePositiveAmount(BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new AmountCantBeNegativeOrZero("Amount cant be negative or zero");
         }
     }
 
-    private void validateSufficientFunds(BigDecimal amount) {
+    public void validateSufficientFunds(BigDecimal amount) {
         if (this.amount.compareTo(amount) < 0) {
-            throw new InsufficientFunds("Insufficient founds");
+            throw new InsufficientFunds("Insufficient funds");
         }
     }
 }
