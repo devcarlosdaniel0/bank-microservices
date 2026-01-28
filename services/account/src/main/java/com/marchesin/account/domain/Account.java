@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,6 +33,10 @@ public class Account {
     @Embedded
     private CurrencyCode currencyCode;
 
+    @NotNull
+    @Embedded
+    private Balance balance;
+
     @CreatedDate
     @Column(updatable = false, nullable = false)
     @Getter
@@ -45,6 +50,7 @@ public class Account {
     public Account(String userId, CurrencyCode currencyCode) {
         this.userId = userId;
         this.currencyCode = currencyCode;
+        this.balance = Balance.zero();
     }
 
     public void changeCurrency(CurrencyCode newCurrency) {
@@ -57,6 +63,18 @@ public class Account {
 
     public String getCurrencyCode() {
         return this.currencyCode.getValue();
+    }
+
+    public BigDecimal getBalanceAmount() {
+        return this.balance.getAmount();
+    }
+
+    public void deposit(BigDecimal amount) {
+        balance.add(amount);
+    }
+
+    public void withdraw(BigDecimal amount) {
+        balance.subtract(amount);
     }
 
 }

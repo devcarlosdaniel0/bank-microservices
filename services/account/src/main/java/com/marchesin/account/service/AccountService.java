@@ -2,10 +2,7 @@ package com.marchesin.account.service;
 
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
-import com.marchesin.account.dto.AccountResponse;
-import com.marchesin.account.dto.AuthenticatedUser;
-import com.marchesin.account.dto.CreateAccountRequest;
-import com.marchesin.account.dto.UpdateAccountRequest;
+import com.marchesin.account.dto.*;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
@@ -89,5 +86,16 @@ public class AccountService {
         repository.delete(account);
 
         producer.sendAccountDeleted(account.getId());
+    }
+
+    public BalanceResponse getBalance(String userId) {
+        Account account = getAccountFromUserId(userId);
+
+        return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
+    }
+
+    private Account getAccountFromUserId(String userId) {
+        return repository.findByUserId(userId)
+                .orElseThrow(() -> new AccountNotFound("Account was not found"));
     }
 }
