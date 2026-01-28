@@ -1,9 +1,6 @@
 package com.marchesin.account.handler;
 
-import com.marchesin.account.exception.AccountNotFound;
-import com.marchesin.account.exception.SameCurrencyException;
-import com.marchesin.account.exception.UserAlreadyHasAccount;
-import com.marchesin.account.exception.UserEmailNotVerified;
+import com.marchesin.account.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +44,31 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timeStamp", timeFormatted());
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
+    }
+
+    @ExceptionHandler(SameAccountTransfer.class)
+    public ResponseEntity<ProblemDetail> handlerSameAccountTransfer(SameAccountTransfer e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
+    }
+
+
+    @ExceptionHandler(InvalidAmount.class)
+    public ResponseEntity<ProblemDetail> handlerInvalidAmount(InvalidAmount e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
+    }
+
+    @ExceptionHandler(InsufficientFunds.class)
+    public ResponseEntity<ProblemDetail> handlerInsufficientFunds(InsufficientFunds e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
