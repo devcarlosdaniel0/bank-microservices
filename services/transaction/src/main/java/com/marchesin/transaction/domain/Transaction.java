@@ -1,12 +1,17 @@
 package com.marchesin.transaction.domain;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tb_transaction")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 public class Transaction {
 
     @Id
