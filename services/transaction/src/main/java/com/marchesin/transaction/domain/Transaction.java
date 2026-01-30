@@ -1,5 +1,6 @@
 package com.marchesin.transaction.domain;
 
+import com.marchesin.transaction.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,12 +20,15 @@ public class Transaction {
     private String id;
 
     private String accountId;
-    private String type;
+
+    @Enumerated(value = EnumType.STRING)
+    private TransactionType type;
+
     private BigDecimal amount;
     private String currencyCode;
     private LocalDateTime createdAt;
 
-    public Transaction(String accountId, String type, BigDecimal amount, String currencyCode, LocalDateTime createdAt) {
+    public Transaction(String accountId, TransactionType type, BigDecimal amount, String currencyCode, LocalDateTime createdAt) {
         this.accountId = accountId;
         this.type = type;
         this.amount = amount;

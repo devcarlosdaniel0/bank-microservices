@@ -83,7 +83,7 @@ public class AccountService {
 
         account.deposit(request.amount());
 
-        TransactionEvent event = new TransactionEvent(account.getId(), TransactionType.DEPOSIT.toString(), request.amount(), account.getCurrencyCode(), LocalDateTime.now());
+        TransactionEvent event = new TransactionEvent(account.getId(), TransactionType.DEPOSIT, request.amount(), account.getCurrencyCode(), LocalDateTime.now());
 
         producer.sendTransactionEvent(event);
 
@@ -96,7 +96,7 @@ public class AccountService {
 
         account.withdraw(request.amount());
 
-        TransactionEvent event = new TransactionEvent(account.getId(), TransactionType.WITHDRAW.toString(), request.amount(), account.getCurrencyCode(), LocalDateTime.now());
+        TransactionEvent event = new TransactionEvent(account.getId(), TransactionType.WITHDRAW, request.amount(), account.getCurrencyCode(), LocalDateTime.now());
 
         producer.sendTransactionEvent(event);
 
@@ -116,8 +116,8 @@ public class AccountService {
         from.withdraw(request.amount());
         to.deposit(request.amount());
 
-        TransactionEvent eventFrom = new TransactionEvent(from.getId(), TransactionType.TRANSFER_OUT.toString(), request.amount(), from.getCurrencyCode(), LocalDateTime.now());
-        TransactionEvent eventTo = new TransactionEvent(to.getId(), TransactionType.TRANSFER_IN.toString(), request.amount(), to.getCurrencyCode(), LocalDateTime.now());
+        TransactionEvent eventFrom = new TransactionEvent(from.getId(), TransactionType.TRANSFER_OUT, request.amount(), from.getCurrencyCode(), LocalDateTime.now());
+        TransactionEvent eventTo = new TransactionEvent(to.getId(), TransactionType.TRANSFER_IN, request.amount(), to.getCurrencyCode(), LocalDateTime.now());
 
         producer.sendTransactionEvent(eventFrom);
         producer.sendTransactionEvent(eventTo);
