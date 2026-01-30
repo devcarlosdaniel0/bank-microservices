@@ -3,10 +3,13 @@ package com.marchesin.account.service;
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
+import com.marchesin.account.enums.TransactionType;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.SameAccountTransfer;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
+import com.marchesin.account.kafka.AccountProducer;
+import com.marchesin.account.kafka.TransactionEvent;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
 import jakarta.transaction.Transactional;
@@ -14,16 +17,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class AccountService {
     private final AccountRepository repository;
     private final AccountMapper mapper;
-    private final TransactionService transactionService;
+    private final AccountProducer producer;
 
-    public AccountService(AccountRepository repository, AccountMapper mapper, TransactionService transactionService) {
+    public AccountService(AccountRepository repository, AccountMapper mapper, AccountProducer producer) {
         this.repository = repository;
         this.mapper = mapper;
-        this.transactionService = transactionService;
+        this.producer = producer;
     }
 
     @Transactional
@@ -78,7 +83,9 @@ public class AccountService {
 
         account.deposit(request.amount());
 
-        transactionService.saveDeposit(account, request.amount());
+        TransactionEvent event = new TransactionEvent(account.getId(), TransactionType.DEPOSIT.toString(), request.amount(), account.getCurrencyCode(), LocalDateTime.now());
+
+        producer.sendTransactionEvent(event);
 
         return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
     }
@@ -89,7 +96,9 @@ public class AccountService {
 
         account.withdraw(request.amount());
 
-        transactionService.saveWithdraw(account, request.amount());
+        TransactionEvent event = new TransactionEvent(account.getId(), TransactionType.WITHDRAW.toString(), request.amount(), account.getCurrencyCode(), LocalDateTime.now());
+
+        producer.sendTransactionEvent(event);
 
         return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
     }
@@ -106,8 +115,6 @@ public class AccountService {
 
         from.withdraw(request.amount());
         to.deposit(request.amount());
-
-        transactionService.saveTransfer(from, to, request.amount());
 
         return new TransferResponse(from.getId(), request.amount(), from.getCurrencyCode(), to.getId());
     }

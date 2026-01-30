@@ -1,4 +1,3 @@
-/*
 package com.marchesin.account.kafka;
 
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +17,8 @@ public class AccountProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendAccountCreated(AccountTopicSent accountTopicSent) {
-        send("account-created-topic", accountTopicSent);
+    public void sendTransactionEvent(TransactionEvent transactionEvent) {
+        send("transaction-created", transactionEvent);
     }
 
     private void send(String topic, Object payload) {
@@ -32,4 +31,3 @@ public class AccountProducer {
         kafkaTemplate.send(message);
     }
 }
-*/

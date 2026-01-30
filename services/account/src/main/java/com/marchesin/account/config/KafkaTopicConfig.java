@@ -1,4 +1,3 @@
-/*
 package com.marchesin.account.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
@@ -10,10 +9,9 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaTopicConfig {
 
     @Bean
-    public NewTopic accountCreatedTopic() {
+    public NewTopic transactionCreated() {
         return TopicBuilder
-                .name("account-created-topic")
+                .name("transaction-created")
                 .build();
     }
 }
- */
