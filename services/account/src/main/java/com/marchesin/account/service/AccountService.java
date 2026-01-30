@@ -116,6 +116,12 @@ public class AccountService {
         from.withdraw(request.amount());
         to.deposit(request.amount());
 
+        TransactionEvent eventFrom = new TransactionEvent(from.getId(), TransactionType.TRANSFER_OUT.toString(), request.amount(), from.getCurrencyCode(), LocalDateTime.now());
+        TransactionEvent eventTo = new TransactionEvent(to.getId(), TransactionType.TRANSFER_IN.toString(), request.amount(), to.getCurrencyCode(), LocalDateTime.now());
+
+        producer.sendTransactionEvent(eventFrom);
+        producer.sendTransactionEvent(eventTo);
+
         return new TransferResponse(from.getId(), request.amount(), from.getCurrencyCode(), to.getId());
     }
 
