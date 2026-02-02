@@ -1,5 +1,6 @@
 package com.marchesin.account.domain;
 
+import com.marchesin.account.exception.InvalidCurrencyCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -34,7 +35,7 @@ public class CurrencyCode {
         try {
             Currency.getInstance(normalized);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid currency code: " + normalized);
+            throw new InvalidCurrencyCode("Invalid currency code: " + normalized);
         }
     }
 

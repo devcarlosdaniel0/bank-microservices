@@ -46,6 +46,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
     }
 
+    @ExceptionHandler(InvalidCurrencyCode.class)
+    public ResponseEntity<ProblemDetail> handlerInvalidCurrencyCode(InvalidCurrencyCode e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+        problemDetail.setProperty("timeStamp", timeFormatted());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
+    }
+
     @ExceptionHandler(SameAccountTransfer.class)
     public ResponseEntity<ProblemDetail> handlerSameAccountTransfer(SameAccountTransfer e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
