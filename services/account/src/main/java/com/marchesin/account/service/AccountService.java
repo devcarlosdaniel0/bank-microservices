@@ -2,6 +2,7 @@ package com.marchesin.account.service;
 
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
+import com.marchesin.account.domain.CurrencyConverter;
 import com.marchesin.account.dto.*;
 import com.marchesin.account.enums.TransactionType;
 import com.marchesin.account.exception.AccountNotFound;
@@ -24,11 +25,13 @@ public class AccountService {
     private final AccountRepository repository;
     private final AccountMapper mapper;
     private final AccountProducer producer;
+    private final CurrencyConverter currencyConverter;
 
-    public AccountService(AccountRepository repository, AccountMapper mapper, AccountProducer producer) {
+    public AccountService(AccountRepository repository, AccountMapper mapper, AccountProducer producer, CurrencyConverter currencyConverter) {
         this.repository = repository;
         this.mapper = mapper;
         this.producer = producer;
+        this.currencyConverter = currencyConverter;
     }
 
     @Transactional
@@ -48,12 +51,11 @@ public class AccountService {
         return mapper.fromAccount(savedAccount);
     }
 
-    // TODO -> chamar exchange currency para converter o saldo atual
     @Transactional
     public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
         Account account = getAccountFromUserId(userId);
 
-        account.changeCurrency(new CurrencyCode(request.currencyCode()));
+        account.changeCurrency(new CurrencyCode(request.currencyCode()), currencyConverter);
 
         return mapper.fromAccount(account);
     }

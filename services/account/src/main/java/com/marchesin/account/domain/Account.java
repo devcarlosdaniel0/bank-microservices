@@ -56,12 +56,19 @@ public class Account {
         this.balance = Balance.zero();
     }
 
-    public void changeCurrency(CurrencyCode newCurrency) {
+    public void changeCurrency(CurrencyCode newCurrency, CurrencyConverter converter) {
         if (newCurrency.equals(this.currencyCode)) {
             throw new SameCurrencyException("The account already has this currency");
         }
 
+        BigDecimal converted = converter.convert(
+                this.currencyCode,
+                newCurrency,
+                this.getBalanceAmount()
+        );
+
         this.currencyCode = newCurrency;
+        this.balance = new Balance(converted);
     }
 
     public String getCurrencyCode() {

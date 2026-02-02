@@ -20,7 +20,7 @@ public class Balance {
     @Column(name = "balance_amount")
     private BigDecimal amount;
 
-    private Balance(BigDecimal amount) {
+    protected Balance(BigDecimal amount) {
         this.amount = amount;
     }
 
