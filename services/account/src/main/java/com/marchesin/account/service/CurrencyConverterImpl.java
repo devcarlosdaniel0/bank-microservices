@@ -18,7 +18,7 @@ public class CurrencyConverterImpl implements CurrencyConverter {
 
     @Override
     public BigDecimal convert(CurrencyCode from, CurrencyCode to, BigDecimal amount) {
-        CurrencyResponse response = client.convertCurrencies(String.format("%s_%s", from.getValue(), to.getValue()), amount);
+        CurrencyResponse response = client.convert(from.getValue(), to.getValue(), amount);
 
         return response.convertedAmount();
     }

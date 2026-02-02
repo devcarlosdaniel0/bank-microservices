@@ -14,7 +14,9 @@ public class AccountMapper {
                 account.getId(),
                 account.getUserId(),
                 account.getCurrencyCode(),
-                account.getCreatedAt()
+                account.getBalanceAmount(),
+                account.getCreatedAt(),
+                account.getLastModifiedDate()
         );
     }
 }

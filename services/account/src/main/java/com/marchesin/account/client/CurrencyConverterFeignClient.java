@@ -11,7 +11,8 @@ import java.math.BigDecimal;
 @FeignClient(name = "currency-converter-service")
 public interface CurrencyConverterFeignClient {
 
-    @GetMapping("/convert-currencies/{symbols}")
-    CurrencyResponse convertCurrencies(@PathVariable("symbols") String symbols,
-                                       @RequestParam("amount") BigDecimal amount);
+    @GetMapping("/api/v1/currency-converter/{from}/{to}") CurrencyResponse convert(
+            @PathVariable("from") String from,
+            @PathVariable("to") String to,
+            @RequestParam("amount") BigDecimal amount);
 }
