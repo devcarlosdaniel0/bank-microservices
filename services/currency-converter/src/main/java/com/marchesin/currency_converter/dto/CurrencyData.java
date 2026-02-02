@@ -1,3 +1,5 @@
 package com.marchesin.currency_converter.dto;
 
-public record CurrencyData(double price, long timestamp) {}
+import java.math.BigDecimal;
+
+public record CurrencyData(BigDecimal price, long timestamp) {}

@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
 
-@FeignClient(name = "invertexto-api", url = "https://api.invertexto.com/v1/currency", configuration = FeignConfig.class)
-public interface CurrencyConverterClient {
+@FeignClient(name = "invertexto-api",
+        url = "https://api.invertexto.com/v1/currency",
+        configuration = FeignConfig.class)
+public interface InvertextoCurrencyClient {
 
     @GetMapping("/{symbols}")
     Map<String, CurrencyData> getCurrencyConversion(

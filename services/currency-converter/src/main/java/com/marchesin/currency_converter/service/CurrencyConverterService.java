@@ -19,35 +19,33 @@ public class CurrencyConverterService {
         this.currencyApiService = currencyApiService;
     }
 
-    public CurrencyResponse convertCurrencies(BigDecimal amount, String symbols) {
+    public CurrencyResponse convert(String from, String to, BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new InsufficientAmountValueException("Amount value must be greater than zero");
         }
 
-        CurrencyData currencyData = currencyApiService.getCurrencyData(symbols).get(symbols);
+        String symbols = (from + "_" + to).toUpperCase();
 
-        BigDecimal exchangeRate = BigDecimal.valueOf(currencyData.price());
+        CurrencyData data = currencyApiService.getCurrencyData(symbols);
+
+        BigDecimal exchangeRate = data.price();
         BigDecimal convertedAmount = exchangeRate.multiply(amount);
 
-        return buildCurrencyResponse(amount, symbols, exchangeRate, convertedAmount, currencyData);
+        return new CurrencyResponse(
+                symbols,
+                round(exchangeRate),
+                amount,
+                round(convertedAmount),
+                getTimestampFormatted(data)
+        );
     }
 
-    private CurrencyResponse buildCurrencyResponse(BigDecimal amount, String symbols, BigDecimal exchangeRate, BigDecimal convertedAmount, CurrencyData currencyData) {
-        return CurrencyResponse.builder()
-                .amount(amount)
-                .symbols(symbols)
-                .exchangeRate(getRoundedPrice(exchangeRate))
-                .convertedAmount(getRoundedPrice(convertedAmount))
-                .timestamp(getTimestampFormatted(currencyData))
-                .build();
+    private BigDecimal round(BigDecimal value) {
+        return value.setScale(2, RoundingMode.HALF_EVEN);
     }
 
     private LocalDateTime getTimestampFormatted(CurrencyData currencyData) {
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(currencyData.timestamp()),
                 ZoneOffset.UTC);
-    }
-
-    private BigDecimal getRoundedPrice(BigDecimal amount) {
-        return amount.setScale(2, RoundingMode.HALF_EVEN);
     }
 }
