@@ -1,7 +1,10 @@
 package com.marchesin.currency_converter.handler;
 
-import com.marchesin.currency_converter.exception.*;
+import com.marchesin.currency_converter.exception.CurrencyNotFoundException;
+import com.marchesin.currency_converter.exception.InsufficientAmountValueException;
+import feign.FeignException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,34 +35,14 @@ public class CurrencyConverterHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
     }
 
-    @ExceptionHandler(ExternalApiException.class)
-    public ResponseEntity<ProblemDetail> handlerExternalApiException(
-            ExternalApiException e) {
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<ProblemDetail> handlerFeignException(
+            FeignException e) {
 
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatusCode.valueOf(e.status()));
         problemDetail.setProperty("timeStamp", timeFormatted());
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problemDetail);
-    }
-
-    @ExceptionHandler(InvalidSyntaxException.class)
-    public ResponseEntity<ProblemDetail> handlerInvalidSyntaxException(
-            InvalidSyntaxException e) {
-
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
-        problemDetail.setProperty("timeStamp", timeFormatted());
-
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
-    }
-
-    @ExceptionHandler(TimeoutException.class)
-    public ResponseEntity<ProblemDetail> handlerTimeoutException(
-            TimeoutException e) {
-
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.REQUEST_TIMEOUT, e.getMessage());
-        problemDetail.setProperty("timeStamp", timeFormatted());
-
-        return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(problemDetail);
+        return ResponseEntity.status(HttpStatusCode.valueOf(e.status())).body(problemDetail);
     }
 
     private String timeFormatted() {

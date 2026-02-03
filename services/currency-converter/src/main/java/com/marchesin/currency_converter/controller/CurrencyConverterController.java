@@ -18,10 +18,11 @@ public class CurrencyConverterController {
     }
 
     @GetMapping("/{from}/{to}")
-    public ResponseEntity<CurrencyResponse> convert(
+    public ResponseEntity<CurrencyResponse> convertInvertexto(
             @PathVariable String from,
             @PathVariable String to,
             @RequestParam BigDecimal amount) {
         return new ResponseEntity<>(currencyConverterService.convert(from, to, amount), HttpStatus.OK);
     }
+
 }
