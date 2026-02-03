@@ -1,8 +1,8 @@
 package com.marchesin.account.service;
 
+import com.marchesin.account.client.CurrencyConverterFeignClient;
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
-import com.marchesin.account.domain.CurrencyConverter;
 import com.marchesin.account.dto.*;
 import com.marchesin.account.enums.TransactionType;
 import com.marchesin.account.exception.AccountNotFound;
@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
@@ -25,13 +26,13 @@ public class AccountService {
     private final AccountRepository repository;
     private final AccountMapper mapper;
     private final AccountProducer producer;
-    private final CurrencyConverter currencyConverter;
+    private final CurrencyConverterFeignClient client;
 
-    public AccountService(AccountRepository repository, AccountMapper mapper, AccountProducer producer, CurrencyConverter currencyConverter) {
+    public AccountService(AccountRepository repository, AccountMapper mapper, AccountProducer producer, CurrencyConverterFeignClient client) {
         this.repository = repository;
         this.mapper = mapper;
         this.producer = producer;
-        this.currencyConverter = currencyConverter;
+        this.client = client;
     }
 
     @Transactional
@@ -55,7 +56,9 @@ public class AccountService {
     public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
         Account account = getAccountFromUserId(userId);
 
-        account.changeCurrency(new CurrencyCode(request.currencyCode()), currencyConverter);
+        CurrencyResponse response = client.convert(account.getCurrencyCode(), request.currencyCode(), account.getBalanceAmount());
+
+        account.changeCurrency(new CurrencyCode(request.currencyCode()), response.convertedAmount());
 
         return mapper.fromAccount(account);
     }
@@ -116,10 +119,14 @@ public class AccountService {
         }
 
         from.withdraw(request.amount());
-        to.deposit(request.amount());
+
+        CurrencyResponse response = client.convert(from.getCurrencyCode(), to.getCurrencyCode(), request.amount());
+        BigDecimal convertedAmount = response.convertedAmount();
+
+        to.deposit(convertedAmount);
 
         TransactionEvent eventFrom = new TransactionEvent(from.getId(), TransactionType.TRANSFER_OUT, request.amount(), from.getCurrencyCode(), LocalDateTime.now());
-        TransactionEvent eventTo = new TransactionEvent(to.getId(), TransactionType.TRANSFER_IN, request.amount(), to.getCurrencyCode(), LocalDateTime.now());
+        TransactionEvent eventTo = new TransactionEvent(to.getId(), TransactionType.TRANSFER_IN, convertedAmount, to.getCurrencyCode(), LocalDateTime.now());
 
         producer.sendTransactionEvent(eventFrom);
         producer.sendTransactionEvent(eventTo);
