@@ -14,7 +14,7 @@ import java.util.Map;
 public interface InvertextoClient {
 
     @GetMapping("/{symbols}")
-    Map<String, InvertextoData> getCurrencyConversion(
+    Map<String, InvertextoData> convert(
             @PathVariable("symbols") String symbols
     );
 }

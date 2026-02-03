@@ -4,39 +4,44 @@ import com.marchesin.currency_converter.client.FxRatesClient;
 import com.marchesin.currency_converter.domain.CurrencyProvider;
 import com.marchesin.currency_converter.dto.CurrencyResponse;
 import com.marchesin.currency_converter.dto.fxrates.FxConvertResponse;
+import com.marchesin.currency_converter.exception.CustomFeignException;
 import com.marchesin.currency_converter.utils.CurrencyUtils;
-import com.marchesin.currency_converter.utils.TimeUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
+import feign.FeignException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
-@Service
-@Qualifier("fxRates")
+@Service("fxRates")
 public class FxRatesImpl implements CurrencyProvider {
 
     private final FxRatesClient client;
+    private final CurrencyResponseFactory factory;
 
-    public FxRatesImpl(FxRatesClient client) {
+    public FxRatesImpl(FxRatesClient client, CurrencyResponseFactory factory) {
         this.client = client;
+        this.factory = factory;
     }
 
     @Override
     public CurrencyResponse convert(String from, String to, BigDecimal amount) {
-        FxConvertResponse response = client.convert(
-                CurrencyUtils.normalize(from), CurrencyUtils.normalize(to), amount);
+        FxConvertResponse response;
 
-        if (!response.success()) {
-            throw new RuntimeException("Fail to convert");
+        try {
+            response = client.convert(CurrencyUtils.normalize(from), CurrencyUtils.normalize(to), amount);
+        } catch (FeignException e) {
+            HttpStatus status = HttpStatus.resolve(e.status());
+
+            throw new CustomFeignException(
+                    status != null ? status : HttpStatus.BAD_GATEWAY,
+                    "External FxRates API error"
+            );
         }
 
-        return new CurrencyResponse(
-                CurrencyUtils.symbols(from, to),
-                response.info().rate().setScale(6, RoundingMode.HALF_EVEN),
-                response.query().amount().setScale(2, RoundingMode.HALF_EVEN),
-                response.result().setScale(2, RoundingMode.HALF_EVEN),
-                TimeUtils.getTimestampFormatted(response.timestamp())
-        );
+        String symbols = CurrencyUtils.symbols(response.query().from(), response.query().to());
+        BigDecimal exchangeRate = response.info().rate();
+        BigDecimal convertedAmount = response.result();
+
+        return factory.buildResponse(symbols, exchangeRate, amount, convertedAmount, response.timestamp());
     }
 }

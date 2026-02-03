@@ -4,46 +4,47 @@ import com.marchesin.currency_converter.client.InvertextoClient;
 import com.marchesin.currency_converter.domain.CurrencyProvider;
 import com.marchesin.currency_converter.dto.CurrencyResponse;
 import com.marchesin.currency_converter.dto.invertexto.InvertextoData;
-import com.marchesin.currency_converter.exception.CurrencyNotFoundException;
+import com.marchesin.currency_converter.exception.CustomFeignException;
 import com.marchesin.currency_converter.utils.CurrencyUtils;
-import com.marchesin.currency_converter.utils.TimeUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
+import feign.FeignException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Map;
 
-@Service
-@Qualifier("invertexto")
+@Service("invertexto")
 public class InvertextoImpl implements CurrencyProvider {
     private final InvertextoClient client;
+    private final CurrencyResponseFactory factory;
 
-    public InvertextoImpl(InvertextoClient client) {
+    public InvertextoImpl(InvertextoClient client, CurrencyResponseFactory factory) {
         this.client = client;
+        this.factory = factory;
     }
 
     @Override
     public CurrencyResponse convert(String from, String to, BigDecimal amount) {
         String symbols = CurrencyUtils.symbols(from, to);
 
-        Map<String, InvertextoData> response = client.getCurrencyConversion(symbols);
+        Map<String, InvertextoData> response;
+
+        try {
+            response = client.convert(symbols);
+        } catch (FeignException e) {
+            HttpStatus status = HttpStatus.resolve(e.status());
+
+            throw new CustomFeignException(
+                    status != null ? status : HttpStatus.BAD_GATEWAY,
+                    "External Invertexto API error"
+            );
+        }
 
         InvertextoData data = response.get(symbols);
 
-        if (data == null) {
-            throw new CurrencyNotFoundException("Currency symbol not found in response: " + symbols);
-        }
-
         BigDecimal exchangeRate = data.price();
-        BigDecimal convertedAmount = exchangeRate.multiply(amount).setScale(2, RoundingMode.HALF_EVEN);
+        BigDecimal convertedAmount = exchangeRate.multiply(amount);
 
-        return new CurrencyResponse(
-                symbols,
-                exchangeRate.setScale(6, RoundingMode.HALF_EVEN),
-                amount.setScale(2, RoundingMode.HALF_EVEN),
-                convertedAmount.setScale(2, RoundingMode.HALF_EVEN),
-                TimeUtils.getTimestampFormatted(data.timestamp())
-        );
+        return factory.buildResponse(symbols, exchangeRate, amount, convertedAmount, data.timestamp());
     }
 }
