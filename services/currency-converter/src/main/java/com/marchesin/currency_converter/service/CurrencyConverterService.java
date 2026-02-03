@@ -29,19 +29,15 @@ public class CurrencyConverterService {
         CurrencyData data = currencyApiService.getCurrencyData(symbols);
 
         BigDecimal exchangeRate = data.price();
-        BigDecimal convertedAmount = exchangeRate.multiply(amount);
+        BigDecimal convertedAmount = exchangeRate.multiply(amount).setScale(2, RoundingMode.HALF_EVEN);
 
         return new CurrencyResponse(
                 symbols,
-                round(exchangeRate),
+                exchangeRate,
                 amount,
-                round(convertedAmount),
+                convertedAmount,
                 getTimestampFormatted(data)
         );
-    }
-
-    private BigDecimal round(BigDecimal value) {
-        return value.setScale(2, RoundingMode.HALF_EVEN);
     }
 
     private LocalDateTime getTimestampFormatted(CurrencyData currencyData) {
