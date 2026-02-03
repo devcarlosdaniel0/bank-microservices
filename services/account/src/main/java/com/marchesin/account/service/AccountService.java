@@ -109,7 +109,6 @@ public class AccountService {
     }
 
     @Transactional
-    // TODO call exchange currency
     public TransferResponse transfer(String userId, TransferRequest request) {
         Account from = getAccountFromUserId(userId);
         Account to = getAccountFromId(request.toAccountId());
@@ -118,20 +117,29 @@ public class AccountService {
             throw new SameAccountTransfer("Cannot transfer to the same account");
         }
 
-        from.withdraw(request.amount());
+        BigDecimal debitAmount = request.amount();
+        BigDecimal creditAmount = convertIfNeeded(from, to, debitAmount);
 
-        CurrencyResponse response = client.convert(from.getCurrencyCode(), to.getCurrencyCode(), request.amount());
-        BigDecimal convertedAmount = response.convertedAmount();
+        from.withdraw(debitAmount);
+        to.deposit(creditAmount);
 
-        to.deposit(convertedAmount);
-
-        TransactionEvent eventFrom = new TransactionEvent(from.getId(), TransactionType.TRANSFER_OUT, request.amount(), from.getCurrencyCode(), LocalDateTime.now());
-        TransactionEvent eventTo = new TransactionEvent(to.getId(), TransactionType.TRANSFER_IN, convertedAmount, to.getCurrencyCode(), LocalDateTime.now());
+        TransactionEvent eventFrom = new TransactionEvent(from.getId(), TransactionType.TRANSFER_OUT, debitAmount, from.getCurrencyCode(), LocalDateTime.now());
+        TransactionEvent eventTo = new TransactionEvent(to.getId(), TransactionType.TRANSFER_IN, creditAmount, to.getCurrencyCode(), LocalDateTime.now());
 
         producer.sendTransactionEvent(eventFrom);
         producer.sendTransactionEvent(eventTo);
 
-        return new TransferResponse(from.getId(), request.amount(), from.getCurrencyCode(), to.getId());
+        return new TransferResponse(from.getId(), debitAmount, from.getCurrencyCode(), to.getId(), creditAmount, to.getCurrencyCode());
+    }
+
+    private BigDecimal convertIfNeeded(Account from, Account to, BigDecimal debitAmount) {
+        if (from.getCurrencyCode().equals(to.getCurrencyCode())) {
+            return debitAmount;
+        }
+
+        CurrencyResponse response = client.convert(from.getCurrencyCode(), to.getCurrencyCode(), debitAmount);
+
+        return response.convertedAmount();
     }
 
     private Account getAccountFromUserId(String userId) {

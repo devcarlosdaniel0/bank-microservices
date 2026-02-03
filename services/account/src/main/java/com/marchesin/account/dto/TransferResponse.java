@@ -4,8 +4,10 @@ import java.math.BigDecimal;
 
 public record TransferResponse(
         String fromAccountId,
-        BigDecimal amount,
-        String currencyCode,
-        String toAccountId
+        BigDecimal sentAmount,
+        String fromCurrencyCode,
+        String toAccountId,
+        BigDecimal receivedAmount,
+        String toCurrencyCode
 ) {
 }
