@@ -7,13 +7,18 @@ import com.marchesin.currency_converter.dto.invertexto.InvertextoData;
 import com.marchesin.currency_converter.exception.CustomFeignException;
 import com.marchesin.currency_converter.utils.CurrencyUtils;
 import feign.FeignException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.Map;
 
-@Service("invertexto")
+@Service
+@ConditionalOnProperty(
+        name = "currency.provider",
+        havingValue = "invertexto"
+)
 public class InvertextoImpl implements CurrencyProvider {
     private final InvertextoClient client;
     private final CurrencyResponseFactory factory;

@@ -7,12 +7,18 @@ import com.marchesin.currency_converter.dto.fxrates.FxConvertResponse;
 import com.marchesin.currency_converter.exception.CustomFeignException;
 import com.marchesin.currency_converter.utils.CurrencyUtils;
 import feign.FeignException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
-@Service("fxRates")
+@Service
+@ConditionalOnProperty(
+        name = "currency.provider",
+        havingValue = "fxRates",
+        matchIfMissing = true
+)
 public class FxRatesImpl implements CurrencyProvider {
 
     private final FxRatesClient client;

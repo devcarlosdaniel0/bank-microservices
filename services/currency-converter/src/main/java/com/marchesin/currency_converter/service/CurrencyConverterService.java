@@ -2,7 +2,6 @@ package com.marchesin.currency_converter.service;
 
 import com.marchesin.currency_converter.domain.CurrencyProvider;
 import com.marchesin.currency_converter.dto.CurrencyResponse;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -11,7 +10,7 @@ import java.math.BigDecimal;
 public class CurrencyConverterService {
     private final CurrencyProvider currencyProvider;
 
-    public CurrencyConverterService(@Qualifier("fxRates") CurrencyProvider currencyProvider) {
+    public CurrencyConverterService(CurrencyProvider currencyProvider) {
         this.currencyProvider = currencyProvider;
     }
 
