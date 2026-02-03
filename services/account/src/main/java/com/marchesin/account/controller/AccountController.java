@@ -3,6 +3,7 @@ package com.marchesin.account.controller;
 import com.marchesin.account.dto.*;
 import com.marchesin.account.mapper.JwtUserMapper;
 import com.marchesin.account.service.AccountService;
+import com.marchesin.account.service.TransferService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,11 +17,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/account")
 public class AccountController {
 
-    private final AccountService service;
+    private final AccountService accountService;
+    private final TransferService transferService;
     private final JwtUserMapper jwtUserMapper;
 
-    public AccountController(AccountService service, JwtUserMapper jwtUserMapper) {
-        this.service = service;
+    public AccountController(AccountService accountService, TransferService transferService, JwtUserMapper jwtUserMapper) {
+        this.accountService = accountService;
+        this.transferService = transferService;
         this.jwtUserMapper = jwtUserMapper;
     }
 
@@ -31,7 +34,7 @@ public class AccountController {
     ) {
         AuthenticatedUser user = jwtUserMapper.from(jwt);
 
-        return new ResponseEntity<>(service.createAccount(user, request), HttpStatus.CREATED);
+        return new ResponseEntity<>(accountService.createAccount(user, request), HttpStatus.CREATED);
     }
 
     @PutMapping("update")
@@ -39,25 +42,25 @@ public class AccountController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid UpdateAccountRequest request
     ) {
-        return new ResponseEntity<>(service.updateAccount(jwt.getSubject(), request), HttpStatus.OK);
+        return new ResponseEntity<>(accountService.updateAccount(jwt.getSubject(), request), HttpStatus.OK);
     }
 
     @GetMapping("find-all")
     public ResponseEntity<Page<AccountResponse>> findAll(Pageable pageable) {
 
-        return new ResponseEntity<>(service.findAll(pageable), HttpStatus.OK);
+        return new ResponseEntity<>(accountService.findAll(pageable), HttpStatus.OK);
     }
 
     @DeleteMapping("delete")
     public ResponseEntity<Void> delete(@AuthenticationPrincipal Jwt jwt) {
-        service.deleteAccount(jwt.getSubject());
+        accountService.deleteAccount(jwt.getSubject());
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("balance")
     public ResponseEntity<BalanceResponse> getBalance(@AuthenticationPrincipal Jwt jwt) {
-        return new ResponseEntity<>(service.getBalance(jwt.getSubject()), HttpStatus.OK);
+        return new ResponseEntity<>(accountService.getBalance(jwt.getSubject()), HttpStatus.OK);
     }
 
     @PostMapping("deposit")
@@ -65,7 +68,7 @@ public class AccountController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid DepositRequest request
     ) {
-        return new ResponseEntity<>(service.deposit(jwt.getSubject(), request), HttpStatus.OK);
+        return new ResponseEntity<>(accountService.deposit(jwt.getSubject(), request), HttpStatus.OK);
     }
 
     @PostMapping("withdraw")
@@ -73,7 +76,7 @@ public class AccountController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid WithdrawRequest request
     ) {
-        return new ResponseEntity<>(service.withdraw(jwt.getSubject(), request), HttpStatus.OK);
+        return new ResponseEntity<>(accountService.withdraw(jwt.getSubject(), request), HttpStatus.OK);
     }
 
     @PostMapping("transfer")
@@ -81,6 +84,6 @@ public class AccountController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid TransferRequest request
     ) {
-        return new ResponseEntity<>(service.transfer(jwt.getSubject(), request), HttpStatus.OK);
+        return new ResponseEntity<>(transferService.transfer(jwt.getSubject(), request), HttpStatus.OK);
     }
 }

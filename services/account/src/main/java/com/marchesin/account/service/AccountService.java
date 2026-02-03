@@ -1,12 +1,10 @@
 package com.marchesin.account.service;
 
-import com.marchesin.account.client.CurrencyConverterFeignClient;
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
 import com.marchesin.account.enums.TransactionType;
 import com.marchesin.account.exception.AccountNotFound;
-import com.marchesin.account.exception.SameAccountTransfer;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
 import com.marchesin.account.kafka.AccountProducer;
@@ -26,13 +24,13 @@ public class AccountService {
     private final AccountRepository repository;
     private final AccountMapper mapper;
     private final AccountProducer producer;
-    private final CurrencyConverterFeignClient client;
+    private final CurrencyConversionService conversionService;
 
-    public AccountService(AccountRepository repository, AccountMapper mapper, AccountProducer producer, CurrencyConverterFeignClient client) {
+    public AccountService(AccountRepository repository, AccountMapper mapper, AccountProducer producer, CurrencyConversionService conversionService) {
         this.repository = repository;
         this.mapper = mapper;
         this.producer = producer;
-        this.client = client;
+        this.conversionService = conversionService;
     }
 
     @Transactional
@@ -56,9 +54,12 @@ public class AccountService {
     public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
         Account account = getAccountFromUserId(userId);
 
-        CurrencyResponse response = client.convert(account.getCurrencyCode(), request.currencyCode(), account.getBalanceAmount());
+        CurrencyCode actualCurrency = new CurrencyCode(account.getCurrencyCode());
+        CurrencyCode newCurrency = new CurrencyCode(request.currencyCode());
 
-        account.changeCurrency(new CurrencyCode(request.currencyCode()), response.convertedAmount());
+        BigDecimal converted = conversionService.convert(actualCurrency, newCurrency, account.getBalanceAmount());
+
+        account.changeCurrency(newCurrency, converted);
 
         return mapper.fromAccount(account);
     }
@@ -108,47 +109,8 @@ public class AccountService {
         return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
     }
 
-    @Transactional
-    public TransferResponse transfer(String userId, TransferRequest request) {
-        Account from = getAccountFromUserId(userId);
-        Account to = getAccountFromId(request.toAccountId());
-
-        if (from.getId().equals(to.getId())) {
-            throw new SameAccountTransfer("Cannot transfer to the same account");
-        }
-
-        BigDecimal debitAmount = request.amount();
-        BigDecimal creditAmount = convertIfNeeded(from, to, debitAmount);
-
-        from.withdraw(debitAmount);
-        to.deposit(creditAmount);
-
-        TransactionEvent eventFrom = new TransactionEvent(from.getId(), TransactionType.TRANSFER_OUT, debitAmount, from.getCurrencyCode(), LocalDateTime.now());
-        TransactionEvent eventTo = new TransactionEvent(to.getId(), TransactionType.TRANSFER_IN, creditAmount, to.getCurrencyCode(), LocalDateTime.now());
-
-        producer.sendTransactionEvent(eventFrom);
-        producer.sendTransactionEvent(eventTo);
-
-        return new TransferResponse(from.getId(), debitAmount, from.getCurrencyCode(), to.getId(), creditAmount, to.getCurrencyCode());
-    }
-
-    private BigDecimal convertIfNeeded(Account from, Account to, BigDecimal debitAmount) {
-        if (from.getCurrencyCode().equals(to.getCurrencyCode())) {
-            return debitAmount;
-        }
-
-        CurrencyResponse response = client.convert(from.getCurrencyCode(), to.getCurrencyCode(), debitAmount);
-
-        return response.convertedAmount();
-    }
-
     private Account getAccountFromUserId(String userId) {
         return repository.findByUserId(userId)
-                .orElseThrow(() -> new AccountNotFound("Account not found"));
-    }
-
-    private Account getAccountFromId(String AccountId) {
-        return repository.findById(AccountId)
                 .orElseThrow(() -> new AccountNotFound("Account not found"));
     }
 }
