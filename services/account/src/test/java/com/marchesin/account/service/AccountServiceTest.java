@@ -98,6 +98,24 @@ class AccountServiceTest {
         }
 
         @Test
+        @DisplayName("Should initialize account with zero balance")
+        void shouldInitializeAccountWithZeroBalance() {
+            // Arrange
+            when(repository.existsByUserId(authenticatedUser.id())).thenReturn(false);
+            when(repository.save(any(Account.class))).thenReturn(account);
+            when(mapper.fromAccount(account)).thenReturn(accountResponse);
+
+            // Act
+            accountService.createAccount(authenticatedUser, createAccountRequest);
+
+            // Assert
+            verify(repository).save(accountArgumentCaptor.capture());
+            Account capturedAccount = accountArgumentCaptor.getValue();
+
+            assertEquals(BigDecimal.ZERO, capturedAccount.getBalanceAmount());
+        }
+
+        @Test
         @DisplayName("Should throw exception when user already has an account")
         void shouldThrowExceptionWhenUserAlreadyHasAnAccount() {
             // Arrange
@@ -108,6 +126,7 @@ class AccountServiceTest {
                     accountService.createAccount(authenticatedUser, createAccountRequest));
 
             verifyNoMoreInteractions(repository);
+            verify(repository, never()).save(any(Account.class));
         }
 
         @Test
@@ -122,6 +141,7 @@ class AccountServiceTest {
                     accountService.createAccount(unverifiedUser, createAccountRequest));
 
             verifyNoMoreInteractions(repository);
+            verify(repository, never()).save(any(Account.class));
         }
 
         @Test
@@ -136,6 +156,7 @@ class AccountServiceTest {
                     accountService.createAccount(authenticatedUser, invalidRequest));
 
             verifyNoMoreInteractions(repository);
+            verify(repository, never()).save(any(Account.class));
         }
 
         @Test
@@ -169,11 +190,7 @@ class AccountServiceTest {
             BigDecimal convertedAmount = BigDecimal.valueOf(20);
 
             when(repository.findByUserId(userId)).thenReturn(Optional.of(account));
-            when(conversionService.convert(
-                    eq(new CurrencyCode("BRL")),
-                    eq(new CurrencyCode("USD")),
-                    eq(BigDecimal.valueOf(100))
-            )).thenReturn(convertedAmount);
+            when(conversionService.convert(any(), any(), eq(BigDecimal.valueOf(100)))).thenReturn(convertedAmount);
             when(mapper.fromAccount(account)).thenReturn(accountResponse);
 
             // Act
