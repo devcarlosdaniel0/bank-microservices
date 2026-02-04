@@ -1,7 +1,9 @@
 package com.marchesin.account.exception;
 
-public class UserEmailNotVerified extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class UserEmailNotVerified extends BusinessException {
     public UserEmailNotVerified(String message) {
-        super(message);
+        super(HttpStatus.FORBIDDEN, message);
     }
 }

@@ -1,7 +1,9 @@
 package com.marchesin.account.exception;
 
-public class AccountNotFound extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class AccountNotFound extends BusinessException {
     public AccountNotFound(String message) {
-        super(message);
+        super(HttpStatus.NOT_FOUND, message);
     }
 }

@@ -14,69 +14,14 @@ import java.time.format.DateTimeFormatter;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UserAlreadyHasAccount.class)
-    public ResponseEntity<ProblemDetail> handlerUserAlreadyHasAccount(UserAlreadyHasAccount e) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ProblemDetail> handlerBusinessException(
+            BusinessException e) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(e.getStatus(), e.getMessage());
         problemDetail.setProperty("timeStamp", timeFormatted());
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
-    }
-
-    @ExceptionHandler(UserEmailNotVerified.class)
-    public ResponseEntity<ProblemDetail> handlerUserEmailNotVerified(UserEmailNotVerified e) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
-        problemDetail.setProperty("timeStamp", timeFormatted());
-
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problemDetail);
-    }
-
-    @ExceptionHandler(AccountNotFound.class)
-    public ResponseEntity<ProblemDetail> handlerAccountNotFound(AccountNotFound e) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
-        problemDetail.setProperty("timeStamp", timeFormatted());
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
-    }
-
-    @ExceptionHandler(SameCurrencyException.class)
-    public ResponseEntity<ProblemDetail> handlerSameCurrencyException(SameCurrencyException e) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
-        problemDetail.setProperty("timeStamp", timeFormatted());
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
-    }
-
-    @ExceptionHandler(InvalidCurrencyCode.class)
-    public ResponseEntity<ProblemDetail> handlerInvalidCurrencyCode(InvalidCurrencyCode e) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
-        problemDetail.setProperty("timeStamp", timeFormatted());
-
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
-    }
-
-    @ExceptionHandler(SameAccountTransfer.class)
-    public ResponseEntity<ProblemDetail> handlerSameAccountTransfer(SameAccountTransfer e) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
-        problemDetail.setProperty("timeStamp", timeFormatted());
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
-    }
-
-
-    @ExceptionHandler(InvalidAmount.class)
-    public ResponseEntity<ProblemDetail> handlerInvalidAmount(InvalidAmount e) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
-        problemDetail.setProperty("timeStamp", timeFormatted());
-
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
-    }
-
-    @ExceptionHandler(InsufficientFunds.class)
-    public ResponseEntity<ProblemDetail> handlerInsufficientFunds(InsufficientFunds e) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
-        problemDetail.setProperty("timeStamp", timeFormatted());
-
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(problemDetail);
+        return ResponseEntity.status(e.getStatus()).body(problemDetail);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

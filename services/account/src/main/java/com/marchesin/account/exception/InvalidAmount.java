@@ -1,7 +1,9 @@
 package com.marchesin.account.exception;
 
-public class InvalidAmount extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class InvalidAmount extends BusinessException {
     public InvalidAmount(String message) {
-        super(message);
+        super(HttpStatus.UNPROCESSABLE_ENTITY, message);
     }
 }

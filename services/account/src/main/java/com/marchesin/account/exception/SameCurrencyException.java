@@ -1,7 +1,9 @@
 package com.marchesin.account.exception;
 
-public class SameCurrencyException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class SameCurrencyException extends BusinessException {
     public SameCurrencyException(String message) {
-        super(message);
+        super(HttpStatus.CONFLICT, message);
     }
 }

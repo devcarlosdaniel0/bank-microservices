@@ -1,7 +1,9 @@
 package com.marchesin.account.exception;
 
-public class InsufficientFunds extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class InsufficientFunds extends BusinessException {
     public InsufficientFunds(String message) {
-        super(message);
+        super(HttpStatus.UNPROCESSABLE_ENTITY, message);
     }
 }

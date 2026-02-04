@@ -1,7 +1,9 @@
 package com.marchesin.account.exception;
 
-public class UserAlreadyHasAccount extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class UserAlreadyHasAccount extends BusinessException {
     public UserAlreadyHasAccount(String message) {
-        super(message);
+        super(HttpStatus.CONFLICT, message);
     }
 }

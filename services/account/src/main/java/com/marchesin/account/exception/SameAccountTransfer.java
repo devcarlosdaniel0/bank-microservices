@@ -1,7 +1,9 @@
 package com.marchesin.account.exception;
 
-public class SameAccountTransfer extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class SameAccountTransfer extends BusinessException {
     public SameAccountTransfer(String message) {
-        super(message);
+        super(HttpStatus.CONFLICT, message);
     }
 }
