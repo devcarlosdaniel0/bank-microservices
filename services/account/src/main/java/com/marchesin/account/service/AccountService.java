@@ -4,6 +4,7 @@ import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
 import com.marchesin.account.exception.AccountNotFound;
+import com.marchesin.account.exception.SameCurrencyException;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
 import com.marchesin.account.mapper.AccountMapper;
@@ -50,6 +51,10 @@ public class AccountService {
 
         CurrencyCode actualCurrency = new CurrencyCode(account.getCurrencyCode());
         CurrencyCode newCurrency = new CurrencyCode(request.currencyCode());
+
+        if (newCurrency.equals(actualCurrency)) {
+            throw new SameCurrencyException("The account already has this currency");
+        }
 
         BigDecimal converted = conversionService.convert(actualCurrency, newCurrency, account.getBalanceAmount());
 
