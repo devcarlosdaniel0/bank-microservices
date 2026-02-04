@@ -1,4 +1,4 @@
-package com.marchesin.account.enums;
+package com.marchesin.account.kafka.enums;
 
 import com.marchesin.account.kafka.TransactionEvent;
 

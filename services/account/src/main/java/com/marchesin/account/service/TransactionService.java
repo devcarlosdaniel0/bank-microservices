@@ -3,7 +3,7 @@ package com.marchesin.account.service;
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
-import com.marchesin.account.enums.TransactionType;
+import com.marchesin.account.kafka.enums.TransactionType;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.SameAccountTransfer;
 import com.marchesin.account.kafka.AccountProducer;

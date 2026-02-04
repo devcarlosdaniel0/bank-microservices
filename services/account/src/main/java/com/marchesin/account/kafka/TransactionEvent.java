@@ -1,6 +1,6 @@
 package com.marchesin.account.kafka;
 
-import com.marchesin.account.enums.TransactionType;
+import com.marchesin.account.kafka.enums.TransactionType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
