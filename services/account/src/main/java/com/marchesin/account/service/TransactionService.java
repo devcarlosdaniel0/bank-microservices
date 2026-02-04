@@ -2,28 +2,25 @@ package com.marchesin.account.service;
 
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
-import com.marchesin.account.dto.TransferRequest;
-import com.marchesin.account.dto.TransferResponse;
+import com.marchesin.account.dto.*;
 import com.marchesin.account.enums.TransactionType;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.SameAccountTransfer;
 import com.marchesin.account.kafka.AccountProducer;
-import com.marchesin.account.kafka.TransactionEvent;
 import com.marchesin.account.repository.AccountRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Service
-public class TransferService {
+public class TransactionService {
 
     private final AccountRepository repository;
     private final AccountProducer producer;
     private final CurrencyConversionService conversionService;
 
-    public TransferService(AccountRepository repository, AccountProducer producer, CurrencyConversionService conversionService) {
+    public TransactionService(AccountRepository repository, AccountProducer producer, CurrencyConversionService conversionService) {
         this.repository = repository;
         this.producer = producer;
         this.conversionService = conversionService;
@@ -44,13 +41,32 @@ public class TransferService {
         from.withdraw(debitAmount);
         to.deposit(creditAmount);
 
-        TransactionEvent eventFrom = new TransactionEvent(from.getId(), TransactionType.TRANSFER_OUT, debitAmount, from.getCurrencyCode(), LocalDateTime.now());
-        TransactionEvent eventTo = new TransactionEvent(to.getId(), TransactionType.TRANSFER_IN, creditAmount, to.getCurrencyCode(), LocalDateTime.now());
-
-        producer.sendTransactionEvent(eventFrom);
-        producer.sendTransactionEvent(eventTo);
+        producer.sendTransactionEvent(TransactionType.TRANSFER_OUT.create(from.getId(), debitAmount, from.getCurrencyCode()));
+        producer.sendTransactionEvent(TransactionType.TRANSFER_IN.create(to.getId(), creditAmount, to.getCurrencyCode()));
 
         return new TransferResponse(from.getId(), debitAmount, from.getCurrencyCode(), to.getId(), creditAmount, to.getCurrencyCode());
+    }
+
+    @Transactional
+    public BalanceResponse deposit(String userId, DepositRequest request) {
+        Account account = getAccountFromUserId(userId);
+
+        account.deposit(request.amount());
+
+        producer.sendTransactionEvent(TransactionType.DEPOSIT.create(account.getId(), request.amount(), account.getCurrencyCode()));
+
+        return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
+    }
+
+    @Transactional
+    public BalanceResponse withdraw(String userId, WithdrawRequest request) {
+        Account account = getAccountFromUserId(userId);
+
+        account.withdraw(request.amount());
+
+        producer.sendTransactionEvent(TransactionType.WITHDRAW.create(account.getId(), request.amount(), account.getCurrencyCode()));
+
+        return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
     }
 
     private Account getAccountFromUserId(String userId) {

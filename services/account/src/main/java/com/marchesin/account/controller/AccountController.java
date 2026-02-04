@@ -3,7 +3,7 @@ package com.marchesin.account.controller;
 import com.marchesin.account.dto.*;
 import com.marchesin.account.mapper.JwtUserMapper;
 import com.marchesin.account.service.AccountService;
-import com.marchesin.account.service.TransferService;
+import com.marchesin.account.service.TransactionService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,12 +18,12 @@ import org.springframework.web.bind.annotation.*;
 public class AccountController {
 
     private final AccountService accountService;
-    private final TransferService transferService;
+    private final TransactionService transactionService;
     private final JwtUserMapper jwtUserMapper;
 
-    public AccountController(AccountService accountService, TransferService transferService, JwtUserMapper jwtUserMapper) {
+    public AccountController(AccountService accountService, TransactionService transactionService, JwtUserMapper jwtUserMapper) {
         this.accountService = accountService;
-        this.transferService = transferService;
+        this.transactionService = transactionService;
         this.jwtUserMapper = jwtUserMapper;
     }
 
@@ -68,7 +68,7 @@ public class AccountController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid DepositRequest request
     ) {
-        return new ResponseEntity<>(accountService.deposit(jwt.getSubject(), request), HttpStatus.OK);
+        return new ResponseEntity<>(transactionService.deposit(jwt.getSubject(), request), HttpStatus.OK);
     }
 
     @PostMapping("withdraw")
@@ -76,7 +76,7 @@ public class AccountController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid WithdrawRequest request
     ) {
-        return new ResponseEntity<>(accountService.withdraw(jwt.getSubject(), request), HttpStatus.OK);
+        return new ResponseEntity<>(transactionService.withdraw(jwt.getSubject(), request), HttpStatus.OK);
     }
 
     @PostMapping("transfer")
@@ -84,6 +84,6 @@ public class AccountController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid TransferRequest request
     ) {
-        return new ResponseEntity<>(transferService.transfer(jwt.getSubject(), request), HttpStatus.OK);
+        return new ResponseEntity<>(transactionService.transfer(jwt.getSubject(), request), HttpStatus.OK);
     }
 }

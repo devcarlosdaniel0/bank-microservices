@@ -3,12 +3,9 @@ package com.marchesin.account.service;
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
-import com.marchesin.account.enums.TransactionType;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
-import com.marchesin.account.kafka.AccountProducer;
-import com.marchesin.account.kafka.TransactionEvent;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
 import jakarta.transaction.Transactional;
@@ -17,19 +14,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Service
 public class AccountService {
     private final AccountRepository repository;
     private final AccountMapper mapper;
-    private final AccountProducer producer;
     private final CurrencyConversionService conversionService;
 
-    public AccountService(AccountRepository repository, AccountMapper mapper, AccountProducer producer, CurrencyConversionService conversionService) {
+    public AccountService(AccountRepository repository, AccountMapper mapper, CurrencyConversionService conversionService) {
         this.repository = repository;
         this.mapper = mapper;
-        this.producer = producer;
         this.conversionService = conversionService;
     }
 
@@ -79,32 +73,6 @@ public class AccountService {
 
     public BalanceResponse getBalance(String userId) {
         Account account = getAccountFromUserId(userId);
-
-        return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
-    }
-
-    @Transactional
-    public BalanceResponse deposit(String userId, DepositRequest request) {
-        Account account = getAccountFromUserId(userId);
-
-        account.deposit(request.amount());
-
-        TransactionEvent event = new TransactionEvent(account.getId(), TransactionType.DEPOSIT, request.amount(), account.getCurrencyCode(), LocalDateTime.now());
-
-        producer.sendTransactionEvent(event);
-
-        return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
-    }
-
-    @Transactional
-    public BalanceResponse withdraw(String userId, WithdrawRequest request) {
-        Account account = getAccountFromUserId(userId);
-
-        account.withdraw(request.amount());
-
-        TransactionEvent event = new TransactionEvent(account.getId(), TransactionType.WITHDRAW, request.amount(), account.getCurrencyCode(), LocalDateTime.now());
-
-        producer.sendTransactionEvent(event);
 
         return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
     }
