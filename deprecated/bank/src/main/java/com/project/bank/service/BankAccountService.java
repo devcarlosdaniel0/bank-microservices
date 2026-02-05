@@ -1,0 +1,153 @@
+package com.project.bank.service;
+
+import com.project.bank.domain.BankAccount;
+import com.project.bank.dto.*;
+import com.project.bank.exception.*;
+import com.project.bank.repository.BankAccountRepository;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.Currency;
+
+@Service
+@RequiredArgsConstructor
+public class BankAccountService {
+    private final BankAccountRepository bankAccountRepository;
+    private final ModelMapper modelMapper;
+
+    @Transactional
+    public BankAccountResponseDTO createBankAccount(CreateBankAccountDTO createBankAccountDTO) {
+        String keycloakUserId = getKeycloakUserIdFromToken();
+
+        Jwt jwt = getTokenJwt();
+        String email = jwt.getClaim("email");
+        String username = jwt.getClaim("preferred_username");
+        Boolean isConfirmed = jwt.getClaim("email_verified");
+
+        if (bankAccountRepository.findByKeycloakUserId(keycloakUserId).isPresent()) {
+            throw new UserAlreadyHasBankAccountException("User already has a bank account");
+        }
+
+        if (!isConfirmed) {
+            throw new UnconfirmedUserException("Your user are not confirmed! Please confirm your account");
+        }
+
+        Currency currency = getCurrencyByCurrencyCode(createBankAccountDTO.currencyCode());
+
+        BankAccount bankAccount = BankAccount.builder()
+                .keycloakUserId(keycloakUserId)
+                .accountEmail(email)
+                .accountName(username)
+                .balance(BigDecimal.ZERO)
+                .currency(currency)
+                .build();
+
+        bankAccountRepository.save(bankAccount);
+
+        return modelMapper.map(bankAccount, BankAccountResponseDTO.class);
+    }
+
+    public Page<BankAccountResponseDTO> findAll(Pageable pageable) {
+        Page<BankAccount> bankAccounts = bankAccountRepository.findAll(pageable);
+
+        return bankAccounts.map(account -> modelMapper.map(account, BankAccountResponseDTO.class));
+    }
+
+    public BankAccountFoundDTO findBankAccountIdByAccountEmail(String accountEmail) {
+        BankAccount bankAccount = bankAccountRepository.findByAccountEmail(accountEmail)
+                .orElseThrow(() -> new BankAccountIdNotFoundException("The bank account email: '" + accountEmail + "' was not found"));
+
+        return new BankAccountFoundDTO(bankAccount.getId());
+    }
+
+    public BalanceResponseDTO checkBalance() {
+        String keycloakUserId = getKeycloakUserIdFromToken();
+
+        BankAccount bankAccount = getBankAccountFromKeycloakUserId(keycloakUserId);
+
+        BigDecimal balance = bankAccount.getBalance();
+        String currency = bankAccount.getCurrency().getCurrencyCode();
+
+        return BalanceResponseDTO.builder()
+                .balance(balance)
+                .currency(currency)
+                .build();
+    }
+
+    @Transactional
+    public BankAccountResponseDTO addBalance(UpdateBalanceDTO updateBalanceDTO) {
+        String keycloakUserId = getKeycloakUserIdFromToken();
+
+        BankAccount bankAccount = getBankAccountFromKeycloakUserId(keycloakUserId);
+
+        return updateBalance(bankAccount, updateBalanceDTO.value(), Operation.ADD);
+    }
+
+    @Transactional
+    public BankAccountResponseDTO withdrawalBalance(UpdateBalanceDTO updateBalanceDTO) {
+        String keycloakUserId = getKeycloakUserIdFromToken();
+
+        BankAccount bankAccount = getBankAccountFromKeycloakUserId(keycloakUserId);
+
+        return updateBalance(bankAccount, updateBalanceDTO.value(), Operation.SUBTRACT);
+    }
+
+    private BankAccountResponseDTO updateBalance(BankAccount bankAccount, BigDecimal value, Operation operation) {
+        BigDecimal newBalance = operation == Operation.ADD
+                ? bankAccount.getBalance().add(value)
+                : bankAccount.getBalance().subtract(value);
+
+        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new InsufficientFundsException(String.format(
+                    "Insufficient funds. Current balance is %s, attempted withdrawal: %s",
+                    bankAccount.getBalance(), value
+            ));
+        }
+
+        bankAccount.setBalance(newBalance);
+
+        bankAccountRepository.save(bankAccount);
+
+        return modelMapper.map(bankAccount, BankAccountResponseDTO.class);
+    }
+
+    private enum Operation {
+        ADD, SUBTRACT
+    }
+
+    private Currency getCurrencyByCurrencyCode(String currencyCode) {
+        try {
+            return Currency.getInstance(currencyCode.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidCurrencyCodeException("Example: BRL, USD, CAD, AUD");
+        }
+    }
+
+    private Jwt getTokenJwt() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth.getPrincipal() instanceof Jwt jwt) {
+            return jwt;
+        } else {
+            throw new RuntimeException("Token not found");
+        }
+    }
+
+    private String getKeycloakUserIdFromToken() {
+        Jwt jwt = getTokenJwt();
+        return jwt.getClaim("sub");
+    }
+
+    private BankAccount getBankAccountFromKeycloakUserId(String keycloakUserId) {
+        return bankAccountRepository.findByKeycloakUserId(keycloakUserId)
+                .orElseThrow(() -> new BankAccountNotFoundException("User does not have a bank account"));
+    }
+}
