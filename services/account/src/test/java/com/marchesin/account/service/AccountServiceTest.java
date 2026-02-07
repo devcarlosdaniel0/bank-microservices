@@ -7,6 +7,7 @@ import com.marchesin.account.dto.external.AuthenticatedUser;
 import com.marchesin.account.exception.*;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
+import com.marchesin.account.service.external.CurrencyConverterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

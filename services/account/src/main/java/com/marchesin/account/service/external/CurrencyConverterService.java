@@ -1,4 +1,4 @@
-package com.marchesin.account.service;
+package com.marchesin.account.service.external;
 
 import com.marchesin.account.client.CurrencyConverterFeignClient;
 import com.marchesin.account.domain.CurrencyCode;

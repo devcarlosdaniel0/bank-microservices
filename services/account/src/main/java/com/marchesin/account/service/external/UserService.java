@@ -1,4 +1,4 @@
-package com.marchesin.account.service;
+package com.marchesin.account.service.external;
 
 import com.marchesin.account.client.UserServiceFeignClient;
 import com.marchesin.account.dto.external.AuthenticatedUser;

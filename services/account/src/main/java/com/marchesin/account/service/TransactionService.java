@@ -9,6 +9,8 @@ import com.marchesin.account.exception.SameAccountTransfer;
 import com.marchesin.account.kafka.AccountProducer;
 import com.marchesin.account.kafka.enums.TransactionType;
 import com.marchesin.account.repository.AccountRepository;
+import com.marchesin.account.service.external.CurrencyConverterService;
+import com.marchesin.account.service.external.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
