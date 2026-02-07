@@ -2,7 +2,7 @@ package com.marchesin.account.service;
 
 import com.marchesin.account.client.CurrencyConverterFeignClient;
 import com.marchesin.account.domain.CurrencyCode;
-import com.marchesin.account.dto.CurrencyResponse;
+import com.marchesin.account.dto.external.CurrencyResponse;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

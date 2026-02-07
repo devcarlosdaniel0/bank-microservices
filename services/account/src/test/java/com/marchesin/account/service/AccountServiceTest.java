@@ -3,6 +3,7 @@ package com.marchesin.account.service;
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
+import com.marchesin.account.dto.external.AuthenticatedUser;
 import com.marchesin.account.exception.*;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;

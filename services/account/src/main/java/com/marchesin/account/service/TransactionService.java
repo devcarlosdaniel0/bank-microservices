@@ -3,10 +3,11 @@ package com.marchesin.account.service;
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
-import com.marchesin.account.kafka.enums.TransactionType;
+import com.marchesin.account.dto.external.AuthenticatedUser;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.SameAccountTransfer;
 import com.marchesin.account.kafka.AccountProducer;
+import com.marchesin.account.kafka.enums.TransactionType;
 import com.marchesin.account.repository.AccountRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -19,22 +20,22 @@ public class TransactionService {
     private final AccountRepository repository;
     private final AccountProducer producer;
     private final CurrencyConversionService conversionService;
-    private final KeycloakService keycloakService;
+    private final UserService userService;
 
-    public TransactionService(AccountRepository repository, AccountProducer producer, CurrencyConversionService conversionService, KeycloakService keycloakService) {
+    public TransactionService(AccountRepository repository, AccountProducer producer, CurrencyConversionService conversionService, UserService userService) {
         this.repository = repository;
         this.producer = producer;
         this.conversionService = conversionService;
-        this.keycloakService = keycloakService;
+        this.userService = userService;
     }
 
     @Transactional
     public TransferResponse transfer(String userId, TransferRequest request) {
         Account from = getAccountFromUserId(userId);
 
-        AuthenticatedUser user = keycloakService.findByEmail(request.toEmail()).orElseThrow(() -> new RuntimeException("User not found"));
+        AuthenticatedUser userTo = userService.findByEmail(request.toEmail());
 
-        Account to = getAccountFromUserId(user.id());
+        Account to = getAccountFromUserId(userTo.id());
 
         if (from.getId().equals(to.getId())) {
             throw new SameAccountTransfer("Cannot transfer to the same account");

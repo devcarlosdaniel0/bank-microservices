@@ -1,6 +1,7 @@
 package com.marchesin.account.controller;
 
 import com.marchesin.account.dto.*;
+import com.marchesin.account.dto.external.AuthenticatedUser;
 import com.marchesin.account.mapper.JwtUserMapper;
 import com.marchesin.account.service.AccountService;
 import com.marchesin.account.service.TransactionService;

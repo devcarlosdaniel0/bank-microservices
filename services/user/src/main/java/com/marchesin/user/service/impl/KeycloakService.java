@@ -1,8 +1,9 @@
-package com.marchesin.account.service;
+package com.marchesin.user.service.impl;
 
-import com.marchesin.account.dto.AuthenticatedUser;
+import com.marchesin.user.config.KeycloakProperties;
+import com.marchesin.user.domain.AuthenticatedUser;
+import com.marchesin.user.service.IdentityProvider;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
@@ -10,19 +11,20 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class KeycloakService {
+public class KeycloakService implements IdentityProvider {
 
-    private final KeyCloakManager keyCloakManager;
+    private final Keycloak keycloak;
+    private final KeycloakProperties properties;
 
-    public KeycloakService(KeyCloakManager keyCloakManager) {
-        this.keyCloakManager = keyCloakManager;
+    public KeycloakService(Keycloak keycloak, KeycloakProperties properties) {
+        this.keycloak = keycloak;
+        this.properties = properties;
     }
 
+    @Override
     public Optional<AuthenticatedUser> findByEmail(String email) {
 
-        List<UserRepresentation> users =
-                keyCloakManager
-                        .getKeyCloakInstanceWithRealm()
+        List<UserRepresentation> users = keycloak.realm(properties.getRealm())
                         .users()
                         .searchByEmail(email, true);
 

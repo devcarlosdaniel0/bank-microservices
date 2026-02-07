@@ -1,4 +1,4 @@
-package com.marchesin.account.dto;
+package com.marchesin.account.dto.external;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

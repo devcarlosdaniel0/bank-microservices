@@ -1,4 +1,4 @@
-package com.marchesin.account.dto;
+package com.marchesin.account.dto.external;
 
 public record AuthenticatedUser(
         String id,
