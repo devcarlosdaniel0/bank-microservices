@@ -19,17 +19,22 @@ public class TransactionService {
     private final AccountRepository repository;
     private final AccountProducer producer;
     private final CurrencyConversionService conversionService;
+    private final KeycloakService keycloakService;
 
-    public TransactionService(AccountRepository repository, AccountProducer producer, CurrencyConversionService conversionService) {
+    public TransactionService(AccountRepository repository, AccountProducer producer, CurrencyConversionService conversionService, KeycloakService keycloakService) {
         this.repository = repository;
         this.producer = producer;
         this.conversionService = conversionService;
+        this.keycloakService = keycloakService;
     }
 
     @Transactional
     public TransferResponse transfer(String userId, TransferRequest request) {
         Account from = getAccountFromUserId(userId);
-        Account to = getAccountFromId(request.toAccountId());
+
+        AuthenticatedUser user = keycloakService.findByEmail(request.toEmail()).orElseThrow(() -> new RuntimeException("User not found"));
+
+        Account to = getAccountFromUserId(user.id());
 
         if (from.getId().equals(to.getId())) {
             throw new SameAccountTransfer("Cannot transfer to the same account");
@@ -44,7 +49,7 @@ public class TransactionService {
         producer.sendTransactionEvent(TransactionType.TRANSFER_OUT.create(from.getId(), debitAmount, from.getCurrencyCode()));
         producer.sendTransactionEvent(TransactionType.TRANSFER_IN.create(to.getId(), creditAmount, to.getCurrencyCode()));
 
-        return new TransferResponse(from.getId(), debitAmount, from.getCurrencyCode(), to.getId(), creditAmount, to.getCurrencyCode());
+        return new TransferResponse(from.getId(), debitAmount, from.getCurrencyCode(), request.toEmail(), creditAmount, to.getCurrencyCode());
     }
 
     @Transactional
@@ -71,11 +76,6 @@ public class TransactionService {
 
     private Account getAccountFromUserId(String userId) {
         return repository.findByUserId(userId)
-                .orElseThrow(() -> new AccountNotFound("Account not found"));
-    }
-
-    private Account getAccountFromId(String AccountId) {
-        return repository.findById(AccountId)
                 .orElseThrow(() -> new AccountNotFound("Account not found"));
     }
 }

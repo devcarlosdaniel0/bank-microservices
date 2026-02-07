@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 public record TransferRequest(
         @NotNull
-        String toAccountId,
+        String toEmail,
         @NotNull
         @DecimalMin("0.01")
         BigDecimal amount

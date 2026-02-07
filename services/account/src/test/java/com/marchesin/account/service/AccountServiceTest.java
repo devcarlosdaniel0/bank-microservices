@@ -204,7 +204,7 @@ class AccountServiceTest {
         }
 
         @Test
-        @DisplayName("Should throw exception and NOT call conversion service when same currency")
+        @DisplayName("Should throw exception when same currency")
         void shouldThrowExceptionWhenUpdatingToSameCurrency() {
             // Arrange
             String userId = "user-123";
@@ -215,8 +215,6 @@ class AccountServiceTest {
             // Act & Assert
             assertThrows(SameCurrencyException.class, () ->
                     accountService.updateAccount(userId, sameRequest));
-
-            verifyNoInteractions(conversionService);
         }
 
         @Test

@@ -52,10 +52,6 @@ public class AccountService {
         CurrencyCode actualCurrency = new CurrencyCode(account.getCurrencyCode());
         CurrencyCode newCurrency = new CurrencyCode(request.currencyCode());
 
-        if (newCurrency.equals(actualCurrency)) {
-            throw new SameCurrencyException("The account already has this currency");
-        }
-
         BigDecimal converted = conversionService.convert(actualCurrency, newCurrency, account.getBalanceAmount());
 
         account.changeCurrency(newCurrency, converted);

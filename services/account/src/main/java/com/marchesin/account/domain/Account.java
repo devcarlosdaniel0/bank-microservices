@@ -43,7 +43,7 @@ public class Account {
     private LocalDateTime createdAt;
 
     @LastModifiedDate
-    @Column(insertable = false)
+    @Column(nullable = false)
     @Getter
     private LocalDateTime lastModifiedDate;
 
