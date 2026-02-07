@@ -20,9 +20,9 @@ import java.math.BigDecimal;
 public class AccountService {
     private final AccountRepository repository;
     private final AccountMapper mapper;
-    private final CurrencyConversionService conversionService;
+    private final CurrencyConverterService conversionService;
 
-    public AccountService(AccountRepository repository, AccountMapper mapper, CurrencyConversionService conversionService) {
+    public AccountService(AccountRepository repository, AccountMapper mapper, CurrencyConverterService conversionService) {
         this.repository = repository;
         this.mapper = mapper;
         this.conversionService = conversionService;

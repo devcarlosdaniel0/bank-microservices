@@ -41,7 +41,7 @@ class AccountServiceTest {
     private AccountMapper mapper;
 
     @Mock
-    private CurrencyConversionService conversionService;
+    private CurrencyConverterService conversionService;
 
     @InjectMocks
     private AccountService accountService;

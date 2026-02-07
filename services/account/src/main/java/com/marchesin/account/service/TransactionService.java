@@ -19,13 +19,13 @@ public class TransactionService {
 
     private final AccountRepository repository;
     private final AccountProducer producer;
-    private final CurrencyConversionService conversionService;
+    private final CurrencyConverterService currencyConverterService;
     private final UserService userService;
 
-    public TransactionService(AccountRepository repository, AccountProducer producer, CurrencyConversionService conversionService, UserService userService) {
+    public TransactionService(AccountRepository repository, AccountProducer producer, CurrencyConverterService currencyConverterService, UserService userService) {
         this.repository = repository;
         this.producer = producer;
-        this.conversionService = conversionService;
+        this.currencyConverterService = currencyConverterService;
         this.userService = userService;
     }
 
@@ -42,7 +42,7 @@ public class TransactionService {
         }
 
         BigDecimal debitAmount = request.amount();
-        BigDecimal creditAmount = conversionService.convert(new CurrencyCode(from.getCurrencyCode()), new CurrencyCode(to.getCurrencyCode()), debitAmount);
+        BigDecimal creditAmount = currencyConverterService.convert(new CurrencyCode(from.getCurrencyCode()), new CurrencyCode(to.getCurrencyCode()), debitAmount);
 
         from.withdraw(debitAmount);
         to.deposit(creditAmount);

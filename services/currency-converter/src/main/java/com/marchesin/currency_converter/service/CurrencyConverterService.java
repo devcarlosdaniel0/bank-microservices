@@ -14,11 +14,7 @@ public class CurrencyConverterService {
         this.currencyProvider = currencyProvider;
     }
 
-    public CurrencyResponse convert(
-            String from,
-            String to,
-            BigDecimal amount
-    ) {
+    public CurrencyResponse convert(String from, String to, BigDecimal amount) {
         return currencyProvider.convert(from, to, amount);
     }
 
