@@ -7,7 +7,6 @@ import java.time.ZoneOffset;
 public class TimeUtils {
 
     private TimeUtils() {
-
     }
 
     public static LocalDateTime getTimestampFormatted(Long timestamp) {

@@ -1,7 +1,7 @@
 package com.marchesin.currency_converter.controller;
 
 import com.marchesin.currency_converter.dto.CurrencyResponse;
-import com.marchesin.currency_converter.service.CurrencyConverterService;
+import com.marchesin.currency_converter.service.impl.CurrencyConverterService;
 import jakarta.validation.constraints.DecimalMin;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
