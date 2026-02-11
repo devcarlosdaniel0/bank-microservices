@@ -13,6 +13,7 @@ import com.marchesin.account.service.external.CurrencyConverterService;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -82,5 +83,10 @@ public class AccountService {
     private Account getAccountFromUserId(String userId) {
         return repository.findByUserId(userId)
                 .orElseThrow(() -> new AccountNotFound("Account not found"));
+    }
+
+    public String getAccountIdByUserId(String userId) {
+        return repository.findByUserId(userId)
+                .orElseThrow(() -> new AccountNotFound("Account not found")).getId();
     }
 }

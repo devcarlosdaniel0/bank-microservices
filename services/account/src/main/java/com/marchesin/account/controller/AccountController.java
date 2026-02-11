@@ -87,4 +87,16 @@ public class AccountController {
     ) {
         return new ResponseEntity<>(transactionService.transfer(jwt.getSubject(), request), HttpStatus.OK);
     }
+
+    @GetMapping("find-by-user-id")
+    public ResponseEntity<String> findAccountIdByUserId(
+            @RequestParam String userId,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        if (!jwt.getSubject().equals(userId)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        return new ResponseEntity<>(accountService.getAccountIdByUserId(userId), HttpStatus.OK);
+    }
 }
