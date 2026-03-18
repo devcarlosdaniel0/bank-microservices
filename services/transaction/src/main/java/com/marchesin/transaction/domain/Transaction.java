@@ -19,20 +19,37 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String accountId;
-
     @Enumerated(value = EnumType.STRING)
     private TransactionType type;
 
-    private BigDecimal amount;
-    private String currencyCode;
-    private LocalDateTime createdAt;
+    private BigDecimal sourceAmount;
 
-    public Transaction(String accountId, TransactionType type, BigDecimal amount, String currencyCode, LocalDateTime createdAt) {
-        this.accountId = accountId;
+    private BigDecimal targetAmount;
+
+    private String sourceCurrency;
+
+    private String targetCurrency;
+
+    private BigDecimal exchangeRate;
+
+    private String sourceAccountId;
+
+    private String targetAccountId;
+
+    private String targetEmail;
+
+    private LocalDateTime timeStamp;
+
+    public Transaction(TransactionType type, BigDecimal sourceAmount, BigDecimal targetAmount, String sourceCurrency, String targetCurrency, BigDecimal exchangeRate, String sourceAccountId, String targetAccountId, String targetEmail, LocalDateTime timeStamp) {
         this.type = type;
-        this.amount = amount;
-        this.currencyCode = currencyCode;
-        this.createdAt = createdAt;
+        this.sourceAmount = sourceAmount;
+        this.targetAmount = targetAmount;
+        this.sourceCurrency = sourceCurrency;
+        this.targetCurrency = targetCurrency;
+        this.exchangeRate = exchangeRate;
+        this.sourceAccountId = sourceAccountId;
+        this.targetAccountId = targetAccountId;
+        this.targetEmail = targetEmail;
+        this.timeStamp = timeStamp;
     }
 }

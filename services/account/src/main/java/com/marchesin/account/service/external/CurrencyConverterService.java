@@ -3,6 +3,7 @@ package com.marchesin.account.service.external;
 import com.marchesin.account.client.CurrencyConverterFeignClient;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.external.CurrencyResponse;
+import com.marchesin.account.exception.SameCurrencyException;
 import com.marchesin.account.exception.feign.CurrencyConverterUnavailable;
 import feign.FeignException;
 import org.springframework.stereotype.Service;
@@ -18,19 +19,15 @@ public class CurrencyConverterService {
         this.client = client;
     }
 
-    public BigDecimal convert(CurrencyCode from, CurrencyCode to, BigDecimal amount) {
-        if (from.equals(to)) {
-            return amount;
+    public CurrencyResponse convert(CurrencyCode currencyFrom, CurrencyCode currencyTo, BigDecimal amount) {
+        if (currencyFrom.equals(currencyTo)) {
+            throw new SameCurrencyException("Can not convert same currencies");
         }
 
-        CurrencyResponse response;
-
         try {
-            response = client.convert(from.getValue(), to.getValue(), amount);
+            return client.convert(currencyFrom.getValue(), currencyTo.getValue(), amount);
         } catch (FeignException e) {
             throw new CurrencyConverterUnavailable("Currency converter unavailable");
         }
-
-        return response.convertedAmount();
     }
 }

@@ -17,7 +17,7 @@ public class TransactionConsumer {
 
     @KafkaListener(topics = "transaction-created", groupId = "transaction-group")
     public void consumeTransactionCreated(TransactionEvent event) {
-        log.info("Consuming 'account created topic' for account ID: {}", event.accountId());
+        log.info("Consuming 'account created topic' for account ID: {}", event.sourceAccountId());
 
         service.createTransaction(event);
     }

@@ -4,9 +4,12 @@ import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
 import com.marchesin.account.dto.external.AuthenticatedUser;
+import com.marchesin.account.dto.external.CurrencyResponse;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
+import com.marchesin.account.kafka.AccountProducer;
+import com.marchesin.account.kafka.factory.TransactionFactory;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
 import com.marchesin.account.service.external.CurrencyConverterService;
@@ -23,11 +26,15 @@ public class AccountService {
     private final AccountRepository repository;
     private final AccountMapper mapper;
     private final CurrencyConverterService conversionService;
+    private final AccountProducer producer;
+    private final TransactionFactory factory;
 
-    public AccountService(AccountRepository repository, AccountMapper mapper, CurrencyConverterService conversionService) {
+    public AccountService(AccountRepository repository, AccountMapper mapper, CurrencyConverterService conversionService, AccountProducer producer, TransactionFactory factory) {
         this.repository = repository;
         this.mapper = mapper;
         this.conversionService = conversionService;
+        this.producer = producer;
+        this.factory = factory;
     }
 
     @Transactional
@@ -51,12 +58,16 @@ public class AccountService {
     public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
         Account account = getAccountFromUserId(userId);
 
-        CurrencyCode actualCurrency = new CurrencyCode(account.getCurrencyCode());
+        BigDecimal oldBalance = account.getBalanceAmount();
+        CurrencyCode oldCurrency = new CurrencyCode(account.getCurrencyCode());
+
         CurrencyCode newCurrency = new CurrencyCode(request.currencyCode());
+        CurrencyResponse response = conversionService.convert(oldCurrency, newCurrency, oldBalance);
+        BigDecimal newBalance = response.convertedAmount();
 
-        BigDecimal converted = conversionService.convert(actualCurrency, newCurrency, account.getBalanceAmount());
+        account.changeCurrency(newCurrency, newBalance);
 
-        account.changeCurrency(newCurrency, converted);
+        producer.sendTransactionEvent(factory.createExchange(account, oldBalance, newBalance, oldCurrency.getValue(), newCurrency.getValue(), response.exchangeRate()));
 
         return mapper.fromAccount(account);
     }

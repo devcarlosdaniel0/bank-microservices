@@ -4,10 +4,13 @@ import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
 import com.marchesin.account.dto.external.AuthenticatedUser;
+import com.marchesin.account.dto.external.CurrencyResponse;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.SameAccountTransfer;
 import com.marchesin.account.kafka.AccountProducer;
+import com.marchesin.account.kafka.TransactionEvent;
 import com.marchesin.account.kafka.enums.TransactionType;
+import com.marchesin.account.kafka.factory.TransactionFactory;
 import com.marchesin.account.repository.AccountRepository;
 import com.marchesin.account.service.external.CurrencyConverterService;
 import com.marchesin.account.service.external.UserService;
@@ -23,12 +26,14 @@ public class TransactionService {
     private final AccountProducer producer;
     private final CurrencyConverterService currencyConverterService;
     private final UserService userService;
+    private final TransactionFactory factory;
 
-    public TransactionService(AccountRepository repository, AccountProducer producer, CurrencyConverterService currencyConverterService, UserService userService) {
+    public TransactionService(AccountRepository repository, AccountProducer producer, CurrencyConverterService currencyConverterService, UserService userService, TransactionFactory factory) {
         this.repository = repository;
         this.producer = producer;
         this.currencyConverterService = currencyConverterService;
         this.userService = userService;
+        this.factory = factory;
     }
 
     @Transactional
@@ -40,17 +45,28 @@ public class TransactionService {
         Account to = getAccountFromUserId(userTo.id());
 
         if (from.getId().equals(to.getId())) {
-            throw new SameAccountTransfer("Cannot transfer to the same account");
+            throw new SameAccountTransfer("Can not transfer to the same account");
         }
 
         BigDecimal debitAmount = request.amount();
-        BigDecimal creditAmount = currencyConverterService.convert(new CurrencyCode(from.getCurrencyCode()), new CurrencyCode(to.getCurrencyCode()), debitAmount);
+        BigDecimal creditAmount;
+        BigDecimal exchangeRate;
+
+        if (from.getCurrencyCode().equals(to.getCurrencyCode())) {
+            creditAmount = debitAmount;
+            exchangeRate = null;
+        } else {
+            CurrencyResponse response = currencyConverterService.convert(
+                    new CurrencyCode(from.getCurrencyCode()), new CurrencyCode(to.getCurrencyCode()), debitAmount);
+
+            creditAmount = response.convertedAmount();
+            exchangeRate = response.exchangeRate();
+        }
 
         from.withdraw(debitAmount);
         to.deposit(creditAmount);
 
-        producer.sendTransactionEvent(TransactionType.TRANSFER_OUT.create(from.getId(), debitAmount, from.getCurrencyCode()));
-        producer.sendTransactionEvent(TransactionType.TRANSFER_IN.create(to.getId(), creditAmount, to.getCurrencyCode()));
+        producer.sendTransactionEvent(factory.createTransfer(from, to, debitAmount, creditAmount, exchangeRate, request.toEmail()));
 
         return new TransferResponse(from.getId(), debitAmount, from.getCurrencyCode(), request.toEmail(), creditAmount, to.getCurrencyCode());
     }
@@ -59,9 +75,11 @@ public class TransactionService {
     public BalanceResponse deposit(String userId, DepositRequest request) {
         Account account = getAccountFromUserId(userId);
 
-        account.deposit(request.amount());
+        BigDecimal amount = request.amount();
 
-        producer.sendTransactionEvent(TransactionType.DEPOSIT.create(account.getId(), request.amount(), account.getCurrencyCode()));
+        account.deposit(amount);
+
+        producer.sendTransactionEvent(factory.createDeposit(account, amount));
 
         return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
     }
@@ -70,9 +88,11 @@ public class TransactionService {
     public BalanceResponse withdraw(String userId, WithdrawRequest request) {
         Account account = getAccountFromUserId(userId);
 
-        account.withdraw(request.amount());
+        BigDecimal amount = request.amount();
 
-        producer.sendTransactionEvent(TransactionType.WITHDRAW.create(account.getId(), request.amount(), account.getCurrencyCode()));
+        account.withdraw(amount);
+
+        producer.sendTransactionEvent(factory.createWithdraw(account, amount));
 
         return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
     }

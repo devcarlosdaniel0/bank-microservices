@@ -12,26 +12,24 @@ import java.util.List;
 
 @Service
 public class TransactionService {
-
-    private final TransactionRepository repository;
     private final TransactionMapper mapper;
+    private final TransactionRepository repository;
 
-    public TransactionService(TransactionRepository repository, TransactionMapper mapper) {
-        this.repository = repository;
+    public TransactionService(TransactionMapper mapper, TransactionRepository repository) {
         this.mapper = mapper;
+        this.repository = repository;
     }
 
     @Transactional
     public void createTransaction(TransactionEvent event) {
-        Transaction transaction = new Transaction(event.accountId(), event.type(), event.amount(), event.currencyCode(), event.createdAt());
-
-        repository.save(transaction);
+        repository.save(mapper.fromEvent(event));
     }
 
     public List<TransactionResponse> findAllTransactions(String accountId) {
-        List<Transaction> transactions = repository.findAllByAccountId(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+        List<Transaction> transactions = repository.findAllBySourceAccountIdOrTargetAccountIdOrderByTimeStampDesc(accountId, accountId);
 
-        return transactions.stream().map(mapper::fromTransaction).toList();
+        return transactions.stream()
+                .map(transaction -> mapper.fromTransaction(transaction, accountId))
+                .toList();
     }
 }

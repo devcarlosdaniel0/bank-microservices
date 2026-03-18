@@ -6,10 +6,15 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record TransactionEvent (
-        String accountId,
         TransactionType type,
-        BigDecimal amount,
-        String currencyCode,
-        LocalDateTime createdAt
+        BigDecimal sourceAmount,
+        BigDecimal targetAmount,
+        String sourceCurrency,
+        String targetCurrency,
+        BigDecimal exchangeRate,
+        String sourceAccountId,
+        String targetAccountId,
+        String targetEmail,
+        LocalDateTime timestamp
 ) {
 }
