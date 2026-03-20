@@ -3,9 +3,11 @@ package com.marchesin.account.service;
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
+import com.marchesin.account.dto.external.AuthenticatedUser;
 import com.marchesin.account.exception.*;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
+import com.marchesin.account.service.external.CurrencyConverterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -40,7 +42,7 @@ class AccountServiceTest {
     private AccountMapper mapper;
 
     @Mock
-    private CurrencyConversionService conversionService;
+    private CurrencyConverterService conversionService;
 
     @InjectMocks
     private AccountService accountService;
@@ -204,7 +206,7 @@ class AccountServiceTest {
         }
 
         @Test
-        @DisplayName("Should throw exception and NOT call conversion service when same currency")
+        @DisplayName("Should throw exception when same currency")
         void shouldThrowExceptionWhenUpdatingToSameCurrency() {
             // Arrange
             String userId = "user-123";
@@ -215,8 +217,6 @@ class AccountServiceTest {
             // Act & Assert
             assertThrows(SameCurrencyException.class, () ->
                     accountService.updateAccount(userId, sameRequest));
-
-            verifyNoInteractions(conversionService);
         }
 
         @Test

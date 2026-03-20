@@ -6,7 +6,7 @@ public record TransferResponse(
         String fromAccountId,
         BigDecimal sentAmount,
         String fromCurrencyCode,
-        String toAccountId,
+        String toEmail,
         BigDecimal receivedAmount,
         String toCurrencyCode
 ) {

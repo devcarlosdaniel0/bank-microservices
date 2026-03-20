@@ -3,15 +3,20 @@ package com.marchesin.account.service;
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
+import com.marchesin.account.dto.external.AuthenticatedUser;
+import com.marchesin.account.dto.external.CurrencyResponse;
 import com.marchesin.account.exception.AccountNotFound;
-import com.marchesin.account.exception.SameCurrencyException;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
+import com.marchesin.account.kafka.AccountProducer;
+import com.marchesin.account.kafka.factory.TransactionFactory;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
+import com.marchesin.account.service.external.CurrencyConverterService;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,12 +25,16 @@ import java.math.BigDecimal;
 public class AccountService {
     private final AccountRepository repository;
     private final AccountMapper mapper;
-    private final CurrencyConversionService conversionService;
+    private final CurrencyConverterService conversionService;
+    private final AccountProducer producer;
+    private final TransactionFactory factory;
 
-    public AccountService(AccountRepository repository, AccountMapper mapper, CurrencyConversionService conversionService) {
+    public AccountService(AccountRepository repository, AccountMapper mapper, CurrencyConverterService conversionService, AccountProducer producer, TransactionFactory factory) {
         this.repository = repository;
         this.mapper = mapper;
         this.conversionService = conversionService;
+        this.producer = producer;
+        this.factory = factory;
     }
 
     @Transactional
@@ -49,16 +58,16 @@ public class AccountService {
     public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
         Account account = getAccountFromUserId(userId);
 
-        CurrencyCode actualCurrency = new CurrencyCode(account.getCurrencyCode());
+        BigDecimal oldBalance = account.getBalanceAmount();
+        CurrencyCode oldCurrency = new CurrencyCode(account.getCurrencyCode());
+
         CurrencyCode newCurrency = new CurrencyCode(request.currencyCode());
+        CurrencyResponse response = conversionService.convert(oldCurrency, newCurrency, oldBalance);
+        BigDecimal newBalance = response.convertedAmount();
 
-        if (newCurrency.equals(actualCurrency)) {
-            throw new SameCurrencyException("The account already has this currency");
-        }
+        account.changeCurrency(newCurrency, newBalance);
 
-        BigDecimal converted = conversionService.convert(actualCurrency, newCurrency, account.getBalanceAmount());
-
-        account.changeCurrency(newCurrency, converted);
+        producer.sendTransactionEvent(factory.createExchange(account, oldBalance, newBalance, oldCurrency.getValue(), newCurrency.getValue(), response.exchangeRate()));
 
         return mapper.fromAccount(account);
     }
@@ -85,5 +94,10 @@ public class AccountService {
     private Account getAccountFromUserId(String userId) {
         return repository.findByUserId(userId)
                 .orElseThrow(() -> new AccountNotFound("Account not found"));
+    }
+
+    public String getAccountIdByUserId(String userId) {
+        return repository.findByUserId(userId)
+                .orElseThrow(() -> new AccountNotFound("Account not found")).getId();
     }
 }

@@ -1,6 +1,7 @@
 package com.marchesin.account.controller;
 
 import com.marchesin.account.dto.*;
+import com.marchesin.account.dto.external.AuthenticatedUser;
 import com.marchesin.account.mapper.JwtUserMapper;
 import com.marchesin.account.service.AccountService;
 import com.marchesin.account.service.TransactionService;
@@ -85,5 +86,17 @@ public class AccountController {
             @RequestBody @Valid TransferRequest request
     ) {
         return new ResponseEntity<>(transactionService.transfer(jwt.getSubject(), request), HttpStatus.OK);
+    }
+
+    @GetMapping("find-by-user-id")
+    public ResponseEntity<String> findAccountIdByUserId(
+            @RequestParam String userId,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        if (!jwt.getSubject().equals(userId)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        return new ResponseEntity<>(accountService.getAccountIdByUserId(userId), HttpStatus.OK);
     }
 }

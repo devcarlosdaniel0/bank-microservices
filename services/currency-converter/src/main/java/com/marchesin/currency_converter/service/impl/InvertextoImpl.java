@@ -1,10 +1,11 @@
-package com.marchesin.currency_converter.service;
+package com.marchesin.currency_converter.service.impl;
 
 import com.marchesin.currency_converter.client.InvertextoClient;
-import com.marchesin.currency_converter.domain.CurrencyProvider;
 import com.marchesin.currency_converter.dto.CurrencyResponse;
 import com.marchesin.currency_converter.dto.invertexto.InvertextoData;
 import com.marchesin.currency_converter.exception.CustomFeignException;
+import com.marchesin.currency_converter.service.CurrencyProvider;
+import com.marchesin.currency_converter.service.CurrencyResponseFactory;
 import com.marchesin.currency_converter.utils.CurrencyUtils;
 import feign.FeignException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

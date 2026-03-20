@@ -1,6 +1,6 @@
 package com.marchesin.account.mapper;
 
-import com.marchesin.account.dto.AuthenticatedUser;
+import com.marchesin.account.dto.external.AuthenticatedUser;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
