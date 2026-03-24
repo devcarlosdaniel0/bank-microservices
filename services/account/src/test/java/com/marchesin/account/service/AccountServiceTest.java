@@ -3,7 +3,7 @@ package com.marchesin.account.service;
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
-import com.marchesin.account.dto.external.AuthenticatedUser;
+import com.marchesin.account.dto.external.AuthUser;
 import com.marchesin.account.exception.*;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
@@ -50,7 +50,7 @@ class AccountServiceTest {
     @Captor
     private ArgumentCaptor<Account> accountArgumentCaptor;
 
-    private AuthenticatedUser authenticatedUser;
+    private AuthUser authUser;
     private Account account;
     private AccountResponse accountResponse;
     private CreateAccountRequest createAccountRequest;
@@ -58,7 +58,7 @@ class AccountServiceTest {
 
     @BeforeEach
     void setUp() {
-        authenticatedUser = new AuthenticatedUser("user-123", "user@email.com", "user", true);
+        authUser = new AuthUser("user-123", "user@email.com", "user", true);
 
         createAccountRequest = new CreateAccountRequest("BRL");
         updateAccountRequest = new UpdateAccountRequest("USD");
@@ -83,12 +83,12 @@ class AccountServiceTest {
         @DisplayName("Should create account successfully when user is valid and has email verified")
         void shouldCreateAccountSuccessfullyWhenUserIsValidAndHasEmailVerified() {
             // Arrange
-            when(repository.existsByUserId(authenticatedUser.id())).thenReturn(false);
+            when(repository.existsByUserId(authUser.id())).thenReturn(false);
             when(repository.save(any(Account.class))).thenReturn(account);
             when(mapper.fromAccount(account)).thenReturn(accountResponse);
 
             // Act
-            accountService.createAccount(authenticatedUser, createAccountRequest);
+            accountService.createAccount(authUser, createAccountRequest);
 
             // Assert
             verify(repository).save(accountArgumentCaptor.capture());
@@ -103,12 +103,12 @@ class AccountServiceTest {
         @DisplayName("Should initialize account with zero balance")
         void shouldInitializeAccountWithZeroBalance() {
             // Arrange
-            when(repository.existsByUserId(authenticatedUser.id())).thenReturn(false);
+            when(repository.existsByUserId(authUser.id())).thenReturn(false);
             when(repository.save(any(Account.class))).thenReturn(account);
             when(mapper.fromAccount(account)).thenReturn(accountResponse);
 
             // Act
-            accountService.createAccount(authenticatedUser, createAccountRequest);
+            accountService.createAccount(authUser, createAccountRequest);
 
             // Assert
             verify(repository).save(accountArgumentCaptor.capture());
@@ -121,11 +121,11 @@ class AccountServiceTest {
         @DisplayName("Should throw exception when user already has an account")
         void shouldThrowExceptionWhenUserAlreadyHasAnAccount() {
             // Arrange
-            when(repository.existsByUserId(authenticatedUser.id())).thenReturn(true);
+            when(repository.existsByUserId(authUser.id())).thenReturn(true);
 
             // Act & Assert
             assertThrows(UserAlreadyHasAccount.class, () ->
-                    accountService.createAccount(authenticatedUser, createAccountRequest));
+                    accountService.createAccount(authUser, createAccountRequest));
 
             verifyNoMoreInteractions(repository);
             verify(repository, never()).save(any(Account.class));
@@ -135,7 +135,7 @@ class AccountServiceTest {
         @DisplayName("Should throw exception when user email is not verified")
         void shouldThrowExceptionWhenUserEmailIsNotVerified() {
             // Arrange
-            AuthenticatedUser unverifiedUser = new AuthenticatedUser("user-123", "user@email.com", "user", false);
+            AuthUser unverifiedUser = new AuthUser("user-123", "user@email.com", "user", false);
             when(repository.existsByUserId(unverifiedUser.id())).thenReturn(false);
 
             // Act & Assert
@@ -151,11 +151,11 @@ class AccountServiceTest {
         void shouldThrowExceptionWhenCurrencyCodeIsInvalid() {
             // Arrange
             CreateAccountRequest invalidRequest = new CreateAccountRequest("INVALID");
-            when(repository.existsByUserId(authenticatedUser.id())).thenReturn(false);
+            when(repository.existsByUserId(authUser.id())).thenReturn(false);
 
             // Act & Assert
             assertThrows(InvalidCurrencyCode.class, () ->
-                    accountService.createAccount(authenticatedUser, invalidRequest));
+                    accountService.createAccount(authUser, invalidRequest));
 
             verifyNoMoreInteractions(repository);
             verify(repository, never()).save(any(Account.class));
@@ -166,12 +166,12 @@ class AccountServiceTest {
         void shouldNormalizeCurrencyCodeToUppercase() {
             // Arrange
             CreateAccountRequest lowercaseRequest = new CreateAccountRequest("usd");
-            when(repository.existsByUserId(authenticatedUser.id())).thenReturn(false);
+            when(repository.existsByUserId(authUser.id())).thenReturn(false);
             when(repository.save(any(Account.class))).thenReturn(account);
             when(mapper.fromAccount(account)).thenReturn(accountResponse);
 
             // Act
-            accountService.createAccount(authenticatedUser, lowercaseRequest);
+            accountService.createAccount(authUser, lowercaseRequest);
 
             // Assert
             verify(repository).save(accountArgumentCaptor.capture());

@@ -3,7 +3,7 @@ package com.marchesin.account.service;
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
-import com.marchesin.account.dto.external.AuthenticatedUser;
+import com.marchesin.account.dto.external.AuthUser;
 import com.marchesin.account.dto.external.CurrencyResponse;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
@@ -16,7 +16,6 @@ import com.marchesin.account.service.external.CurrencyConverterService;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -38,7 +37,7 @@ public class AccountService {
     }
 
     @Transactional
-    public AccountResponse createAccount(AuthenticatedUser user, CreateAccountRequest request) {
+    public AccountResponse createAccount(AuthUser user, CreateAccountRequest request) {
         if (repository.existsByUserId(user.id())) {
             throw new UserAlreadyHasAccount("User already has an account");
         }

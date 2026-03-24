@@ -3,13 +3,11 @@ package com.marchesin.account.service;
 import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
-import com.marchesin.account.dto.external.AuthenticatedUser;
+import com.marchesin.account.dto.external.AuthUser;
 import com.marchesin.account.dto.external.CurrencyResponse;
 import com.marchesin.account.exception.AccountNotFound;
 import com.marchesin.account.exception.SameAccountTransfer;
 import com.marchesin.account.kafka.AccountProducer;
-import com.marchesin.account.kafka.TransactionEvent;
-import com.marchesin.account.kafka.enums.TransactionType;
 import com.marchesin.account.kafka.factory.TransactionFactory;
 import com.marchesin.account.repository.AccountRepository;
 import com.marchesin.account.service.external.CurrencyConverterService;
@@ -37,14 +35,14 @@ public class TransactionService {
     }
 
     @Transactional
-    public TransferResponse transfer(String userId, TransferRequest request) {
-        Account from = getAccountFromUserId(userId);
+    public TransferResponse transfer(AuthUser sourceUser, TransferRequest request) {
+        Account source = getAccountFromUserId(sourceUser.id());
 
-        AuthenticatedUser userTo = userService.findByEmail(request.toEmail());
+        AuthUser targetUser = userService.findByEmail(request.toEmail());
 
-        Account to = getAccountFromUserId(userTo.id());
+        Account target = getAccountFromUserId(targetUser.id());
 
-        if (from.getId().equals(to.getId())) {
+        if (source.getId().equals(target.getId())) {
             throw new SameAccountTransfer("Can not transfer to the same account");
         }
 
@@ -52,23 +50,23 @@ public class TransactionService {
         BigDecimal creditAmount;
         BigDecimal exchangeRate;
 
-        if (from.getCurrencyCode().equals(to.getCurrencyCode())) {
+        if (source.getCurrencyCode().equals(target.getCurrencyCode())) {
             creditAmount = debitAmount;
             exchangeRate = null;
         } else {
             CurrencyResponse response = currencyConverterService.convert(
-                    new CurrencyCode(from.getCurrencyCode()), new CurrencyCode(to.getCurrencyCode()), debitAmount);
+                    new CurrencyCode(source.getCurrencyCode()), new CurrencyCode(target.getCurrencyCode()), debitAmount);
 
             creditAmount = response.convertedAmount();
             exchangeRate = response.exchangeRate();
         }
 
-        from.withdraw(debitAmount);
-        to.deposit(creditAmount);
+        source.withdraw(debitAmount);
+        target.deposit(creditAmount);
 
-        producer.sendTransactionEvent(factory.createTransfer(from, to, debitAmount, creditAmount, exchangeRate, request.toEmail()));
+        producer.sendTransactionEvent(factory.createTransfer(source, target, debitAmount, creditAmount, exchangeRate, sourceUser.email(), request.toEmail()));
 
-        return new TransferResponse(from.getId(), debitAmount, from.getCurrencyCode(), request.toEmail(), creditAmount, to.getCurrencyCode());
+        return new TransferResponse(source.getId(), debitAmount, source.getCurrencyCode(), request.toEmail(), creditAmount, target.getCurrencyCode());
     }
 
     @Transactional

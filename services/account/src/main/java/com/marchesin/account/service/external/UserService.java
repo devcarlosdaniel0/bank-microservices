@@ -1,7 +1,7 @@
 package com.marchesin.account.service.external;
 
 import com.marchesin.account.client.UserServiceFeignClient;
-import com.marchesin.account.dto.external.AuthenticatedUser;
+import com.marchesin.account.dto.external.AuthUser;
 import com.marchesin.account.exception.feign.UserNotFound;
 import com.marchesin.account.exception.feign.UserServiceUnavailable;
 import feign.FeignException;
@@ -15,8 +15,8 @@ public class UserService {
         this.client = client;
     }
 
-    public AuthenticatedUser findByEmail(String email) {
-        AuthenticatedUser user;
+    public AuthUser findByEmail(String email) {
+        AuthUser user;
 
         try {
             user = client.findByEmail(email);

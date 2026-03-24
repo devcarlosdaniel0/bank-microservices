@@ -1,6 +1,6 @@
 package com.marchesin.account.dto.external;
 
-public record AuthenticatedUser(
+public record AuthUser(
         String id,
         String email,
         String name,

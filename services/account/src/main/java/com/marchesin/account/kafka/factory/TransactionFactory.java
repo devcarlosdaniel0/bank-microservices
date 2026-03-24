@@ -22,6 +22,7 @@ public class TransactionFactory {
                 account.getId(),
                 null,
                 null,
+                null,
                 LocalDateTime.now());
     }
 
@@ -36,10 +37,11 @@ public class TransactionFactory {
                 account.getId(),
                 null,
                 null,
+                null,
                 LocalDateTime.now());
     }
 
-    public TransactionEvent createTransfer(Account source, Account target, BigDecimal sourceAmount, BigDecimal targetAmount, BigDecimal exchangeRate, String targetEmail){
+    public TransactionEvent createTransfer(Account source, Account target, BigDecimal sourceAmount, BigDecimal targetAmount, BigDecimal exchangeRate, String sourceEmail, String targetEmail){
         return new TransactionEvent(
                 TransactionType.TRANSFER,
                 sourceAmount,
@@ -49,6 +51,7 @@ public class TransactionFactory {
                 exchangeRate,
                 source.getId(),
                 target.getId(),
+                sourceEmail,
                 targetEmail,
                 LocalDateTime.now());
     }
@@ -62,6 +65,7 @@ public class TransactionFactory {
                 newCurrency,
                 exchangeRate,
                 account.getId(),
+                null,
                 null,
                 null,
                 LocalDateTime.now());

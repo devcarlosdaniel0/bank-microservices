@@ -36,11 +36,13 @@ public class Transaction {
 
     private String targetAccountId;
 
+    private String sourceEmail;
+
     private String targetEmail;
 
     private LocalDateTime timeStamp;
 
-    public Transaction(TransactionType type, BigDecimal sourceAmount, BigDecimal targetAmount, String sourceCurrency, String targetCurrency, BigDecimal exchangeRate, String sourceAccountId, String targetAccountId, String targetEmail, LocalDateTime timeStamp) {
+    public Transaction(TransactionType type, BigDecimal sourceAmount, BigDecimal targetAmount, String sourceCurrency, String targetCurrency, BigDecimal exchangeRate, String sourceAccountId, String targetAccountId, String sourceEmail, String targetEmail, LocalDateTime timeStamp) {
         this.type = type;
         this.sourceAmount = sourceAmount;
         this.targetAmount = targetAmount;
@@ -49,6 +51,7 @@ public class Transaction {
         this.exchangeRate = exchangeRate;
         this.sourceAccountId = sourceAccountId;
         this.targetAccountId = targetAccountId;
+        this.sourceEmail = sourceEmail;
         this.targetEmail = targetEmail;
         this.timeStamp = timeStamp;
     }

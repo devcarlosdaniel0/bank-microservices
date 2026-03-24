@@ -1,7 +1,7 @@
 package com.marchesin.account.controller;
 
 import com.marchesin.account.dto.*;
-import com.marchesin.account.dto.external.AuthenticatedUser;
+import com.marchesin.account.dto.external.AuthUser;
 import com.marchesin.account.mapper.JwtUserMapper;
 import com.marchesin.account.service.AccountService;
 import com.marchesin.account.service.TransactionService;
@@ -33,7 +33,7 @@ public class AccountController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid CreateAccountRequest request
     ) {
-        AuthenticatedUser user = jwtUserMapper.from(jwt);
+        AuthUser user = jwtUserMapper.from(jwt);
 
         return new ResponseEntity<>(accountService.createAccount(user, request), HttpStatus.CREATED);
     }
@@ -85,7 +85,9 @@ public class AccountController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid TransferRequest request
     ) {
-        return new ResponseEntity<>(transactionService.transfer(jwt.getSubject(), request), HttpStatus.OK);
+        AuthUser user = jwtUserMapper.from(jwt);
+
+        return new ResponseEntity<>(transactionService.transfer(user, request), HttpStatus.OK);
     }
 
     @GetMapping("find-by-user-id")

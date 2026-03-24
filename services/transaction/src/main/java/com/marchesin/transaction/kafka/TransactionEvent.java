@@ -14,6 +14,7 @@ public record TransactionEvent (
         BigDecimal exchangeRate,
         String sourceAccountId,
         String targetAccountId,
+        String sourceEmail,
         String targetEmail,
         LocalDateTime timestamp
 ) {

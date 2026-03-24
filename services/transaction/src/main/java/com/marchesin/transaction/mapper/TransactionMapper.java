@@ -27,6 +27,7 @@ public class TransactionMapper {
                 transaction.getSourceCurrency(),
                 transaction.getTargetCurrency(),
                 transaction.getExchangeRate(),
+                transaction.getSourceEmail(),
                 transaction.getTargetEmail(),
                 transaction.getTimeStamp()
         );
@@ -42,6 +43,7 @@ public class TransactionMapper {
                 event.exchangeRate(),
                 event.sourceAccountId(),
                 event.targetAccountId(),
+                event.sourceEmail(),
                 event.targetEmail(),
                 event.timestamp());
     }

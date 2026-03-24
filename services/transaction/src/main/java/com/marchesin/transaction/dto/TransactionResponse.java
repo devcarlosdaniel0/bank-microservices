@@ -14,6 +14,7 @@ public record TransactionResponse(
         String sourceCurrency,
         String targetCurrency,
         BigDecimal exchangeRate,
+        String sourceEmail,
         String targetEmail,
         LocalDateTime timestamp
 ) {
