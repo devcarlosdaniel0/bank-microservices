@@ -1,10 +1,12 @@
 package com.marchesin.account.kafka;
 
 import com.marchesin.account.kafka.enums.TransactionType;
+import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Builder
 public record TransactionEvent (
         TransactionType type,
         BigDecimal sourceAmount,

@@ -12,33 +12,23 @@ import java.time.LocalDateTime;
 public class TransactionFactory {
 
     public TransactionEvent createDeposit(Account account, BigDecimal amount){
-        return new TransactionEvent(
-                TransactionType.DEPOSIT,
-                amount,
-                null,
-                account.getCurrencyCode(),
-                null,
-                null,
-                account.getId(),
-                null,
-                null,
-                null,
-                LocalDateTime.now());
+        return TransactionEvent.builder()
+                .type(TransactionType.DEPOSIT)
+                .sourceAmount(amount)
+                .sourceCurrency(account.getCurrencyCode())
+                .sourceAccountId(account.getId())
+                .timestamp(LocalDateTime.now())
+                .build();
     }
 
     public TransactionEvent createWithdraw(Account account, BigDecimal amount){
-        return new TransactionEvent(
-                TransactionType.WITHDRAW,
-                amount,
-                null,
-                account.getCurrencyCode(),
-                null,
-                null,
-                account.getId(),
-                null,
-                null,
-                null,
-                LocalDateTime.now());
+        return TransactionEvent.builder()
+                .type(TransactionType.WITHDRAW)
+                .sourceAmount(amount)
+                .sourceCurrency(account.getCurrencyCode())
+                .sourceAccountId(account.getId())
+                .timestamp(LocalDateTime.now())
+                .build();
     }
 
     public TransactionEvent createTransfer(Account source, Account target, BigDecimal sourceAmount, BigDecimal targetAmount, BigDecimal exchangeRate, String sourceEmail, String targetEmail){
