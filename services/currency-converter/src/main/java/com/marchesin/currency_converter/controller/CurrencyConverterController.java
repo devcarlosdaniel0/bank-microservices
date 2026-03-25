@@ -21,7 +21,7 @@ public class CurrencyConverterController {
     }
 
     @GetMapping("/{from}/{to}")
-    public ResponseEntity<CurrencyResponse> convertInvertexto(
+    public ResponseEntity<CurrencyResponse> convert(
             @PathVariable String from,
             @PathVariable String to,
             @RequestParam @DecimalMin("0.01") BigDecimal amount) {
