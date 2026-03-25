@@ -19,28 +19,27 @@ import java.math.BigDecimal;
 
 @Service
 public class TransactionService {
-
-    private final AccountRepository repository;
     private final AccountProducer producer;
     private final CurrencyConverterService currencyConverterService;
     private final UserService userService;
     private final TransactionFactory factory;
+    private final AccountRepository repository;
 
-    public TransactionService(AccountRepository repository, AccountProducer producer, CurrencyConverterService currencyConverterService, UserService userService, TransactionFactory factory) {
-        this.repository = repository;
+    public TransactionService(AccountProducer producer, CurrencyConverterService currencyConverterService, UserService userService, TransactionFactory factory, AccountRepository repository) {
         this.producer = producer;
         this.currencyConverterService = currencyConverterService;
+        this.repository = repository;
         this.userService = userService;
         this.factory = factory;
     }
 
     @Transactional
     public TransferResponse transfer(AuthUser sourceUser, TransferRequest request) {
-        Account source = getAccountFromUserId(sourceUser.id());
+        Account source = findByUserId(sourceUser.id());
 
         AuthUser targetUser = userService.findByEmail(request.toEmail());
 
-        Account target = getAccountFromUserId(targetUser.id());
+        Account target = findByUserId(targetUser.id());
 
         if (source.getId().equals(target.getId())) {
             throw new SameAccountTransfer("Can not transfer to the same account");
@@ -71,7 +70,7 @@ public class TransactionService {
 
     @Transactional
     public BalanceResponse deposit(String userId, DepositRequest request) {
-        Account account = getAccountFromUserId(userId);
+        Account account = findByUserId(userId);
 
         BigDecimal amount = request.amount();
 
@@ -84,7 +83,7 @@ public class TransactionService {
 
     @Transactional
     public BalanceResponse withdraw(String userId, WithdrawRequest request) {
-        Account account = getAccountFromUserId(userId);
+        Account account = findByUserId(userId);
 
         BigDecimal amount = request.amount();
 
@@ -95,7 +94,7 @@ public class TransactionService {
         return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
     }
 
-    private Account getAccountFromUserId(String userId) {
+    public Account findByUserId(String userId) {
         return repository.findByUserId(userId)
                 .orElseThrow(() -> new AccountNotFound("Account not found"));
     }

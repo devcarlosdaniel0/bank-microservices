@@ -56,7 +56,7 @@ public class AccountService {
 
     @Transactional
     public AccountResponse updateAccount(String userId, UpdateAccountRequest request) {
-        Account account = getAccountFromUserId(userId);
+        Account account = findByUserId(userId);
 
         BigDecimal oldBalance = account.getBalanceAmount();
         CurrencyCode oldCurrency = new CurrencyCode(account.getCurrencyCode());
@@ -84,24 +84,24 @@ public class AccountService {
 
     @Transactional
     public void deleteAccount(String userId) {
-        Account account = getAccountFromUserId(userId);
+        Account account = findByUserId(userId);
 
         repository.delete(account);
     }
 
     public BalanceResponse getBalance(String userId) {
-        Account account = getAccountFromUserId(userId);
+        Account account = findByUserId(userId);
 
         return new BalanceResponse(account.getBalanceAmount(), account.getCurrencyCode());
-    }
-
-    private Account getAccountFromUserId(String userId) {
-        return repository.findByUserId(userId)
-                .orElseThrow(() -> new AccountNotFound("Account not found"));
     }
 
     public String getAccountIdByUserId(String userId) {
         return repository.findByUserId(userId)
                 .orElseThrow(() -> new AccountNotFound("Account not found")).getId();
+    }
+
+    public Account findByUserId(String userId) {
+        return repository.findByUserId(userId)
+                .orElseThrow(() -> new AccountNotFound("Account not found"));
     }
 }
