@@ -17,19 +17,13 @@ import java.util.List;
 public class TransactionController {
 
     private final TransactionService service;
-    private final AccountServiceClient client;
 
-    public TransactionController(TransactionService service, AccountServiceClient client) {
+    public TransactionController(TransactionService service) {
         this.service = service;
-        this.client = client;
     }
 
     @GetMapping("me")
     public ResponseEntity<List<TransactionResponse>> findAllByAccountId(@AuthenticationPrincipal Jwt jwt) {
-
-        String userId = jwt.getSubject();
-        String accountId = client.getAccountIdFromUserId(userId);
-
-        return new ResponseEntity<>(service.findAllTransactions(accountId), HttpStatus.OK);
+        return new ResponseEntity<>(service.findAllTransactions(jwt.getSubject()), HttpStatus.OK);
     }
 }

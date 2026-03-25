@@ -1,5 +1,6 @@
 package com.marchesin.transaction.service;
 
+import com.marchesin.transaction.client.AccountServiceClient;
 import com.marchesin.transaction.domain.Transaction;
 import com.marchesin.transaction.dto.TransactionResponse;
 import com.marchesin.transaction.kafka.TransactionEvent;
@@ -14,10 +15,12 @@ import java.util.List;
 public class TransactionService {
     private final TransactionMapper mapper;
     private final TransactionRepository repository;
+    private final AccountServiceClient client;
 
-    public TransactionService(TransactionMapper mapper, TransactionRepository repository) {
+    public TransactionService(TransactionMapper mapper, TransactionRepository repository, AccountServiceClient client) {
         this.mapper = mapper;
         this.repository = repository;
+        this.client = client;
     }
 
     @Transactional
@@ -25,7 +28,9 @@ public class TransactionService {
         repository.save(mapper.fromEvent(event));
     }
 
-    public List<TransactionResponse> findAllTransactions(String accountId) {
+    public List<TransactionResponse> findAllTransactions(String userId) {
+        String accountId = client.getAccountIdFromUserId(userId);
+
         List<Transaction> transactions = repository.findAllBySourceAccountIdOrTargetAccountIdOrderByTimeStampDesc(accountId, accountId);
 
         return transactions.stream()
