@@ -6,6 +6,7 @@ import com.marchesin.account.dto.*;
 import com.marchesin.account.dto.external.AuthUser;
 import com.marchesin.account.dto.external.CurrencyResponse;
 import com.marchesin.account.exception.AccountNotFound;
+import com.marchesin.account.exception.SameCurrencyException;
 import com.marchesin.account.exception.UserAlreadyHasAccount;
 import com.marchesin.account.exception.UserEmailNotVerified;
 import com.marchesin.account.kafka.AccountProducer;
@@ -59,8 +60,12 @@ public class AccountService {
 
         BigDecimal oldBalance = account.getBalanceAmount();
         CurrencyCode oldCurrency = new CurrencyCode(account.getCurrencyCode());
-
         CurrencyCode newCurrency = new CurrencyCode(request.currencyCode());
+
+        if (oldCurrency.equals(newCurrency)) {
+            throw new SameCurrencyException("Account already uses this currency");
+        }
+
         CurrencyResponse response = conversionService.convert(oldCurrency, newCurrency, oldBalance);
         BigDecimal newBalance = response.convertedAmount();
 

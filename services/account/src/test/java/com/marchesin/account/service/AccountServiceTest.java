@@ -4,7 +4,10 @@ import com.marchesin.account.domain.Account;
 import com.marchesin.account.domain.CurrencyCode;
 import com.marchesin.account.dto.*;
 import com.marchesin.account.dto.external.AuthUser;
+import com.marchesin.account.dto.external.CurrencyResponse;
 import com.marchesin.account.exception.*;
+import com.marchesin.account.kafka.AccountProducer;
+import com.marchesin.account.kafka.factory.TransactionFactory;
 import com.marchesin.account.mapper.AccountMapper;
 import com.marchesin.account.repository.AccountRepository;
 import com.marchesin.account.service.external.CurrencyConverterService;
@@ -43,6 +46,12 @@ class AccountServiceTest {
 
     @Mock
     private CurrencyConverterService conversionService;
+
+    @Mock
+    private AccountProducer producer;
+
+    @Mock
+    private TransactionFactory factory;
 
     @InjectMocks
     private AccountService accountService;
@@ -191,8 +200,16 @@ class AccountServiceTest {
             String userId = "user-123";
             BigDecimal convertedAmount = BigDecimal.valueOf(20);
 
+            CurrencyResponse currencyResponse = new CurrencyResponse(
+                    "BRL_USD",
+                    BigDecimal.valueOf(0.20),
+                    BigDecimal.valueOf(100),
+                    convertedAmount,
+                    LocalDateTime.now()
+            );
+
             when(repository.findByUserId(userId)).thenReturn(Optional.of(account));
-            when(conversionService.convert(any(), any(), eq(BigDecimal.valueOf(100)))).thenReturn(convertedAmount);
+            when(conversionService.convert(any(), any(), eq(BigDecimal.valueOf(100)))).thenReturn(currencyResponse);
             when(mapper.fromAccount(account)).thenReturn(accountResponse);
 
             // Act
@@ -217,6 +234,8 @@ class AccountServiceTest {
             // Act & Assert
             assertThrows(SameCurrencyException.class, () ->
                     accountService.updateAccount(userId, sameRequest));
+
+            verifyNoInteractions(conversionService, mapper, producer, factory);
         }
 
         @Test
@@ -230,7 +249,7 @@ class AccountServiceTest {
             assertThrows(AccountNotFound.class, () ->
                     accountService.updateAccount(userId, updateAccountRequest));
 
-            verifyNoInteractions(conversionService, mapper);
+            verifyNoInteractions(conversionService, mapper, producer, factory);
         }
 
         @Test
@@ -241,12 +260,20 @@ class AccountServiceTest {
             UpdateAccountRequest lowercaseRequest = new UpdateAccountRequest("eur");
             BigDecimal convertedAmount = BigDecimal.valueOf(15);
 
+            CurrencyResponse currencyResponse = new CurrencyResponse(
+                    "BRL_EUR",
+                    BigDecimal.valueOf(0.15),
+                    BigDecimal.valueOf(100),
+                    convertedAmount,
+                    LocalDateTime.now()
+            );
+
             when(repository.findByUserId(userId)).thenReturn(Optional.of(account));
             when(conversionService.convert(
                     any(CurrencyCode.class),
                     any(CurrencyCode.class),
                     any(BigDecimal.class)
-            )).thenReturn(convertedAmount);
+            )).thenReturn(currencyResponse);
             when(mapper.fromAccount(account)).thenReturn(accountResponse);
 
             // Act
