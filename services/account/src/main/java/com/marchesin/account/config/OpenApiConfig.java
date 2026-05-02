@@ -1,8 +1,7 @@
 package com.marchesin.account.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
-import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -20,13 +19,18 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                .addSecurityItem(new SecurityRequirement().addList("oauth2"))
                 .components(new Components()
-                        .addSecuritySchemes("bearerAuth", new SecurityScheme()
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")
-                                .description("Token JWT of authentication")))
+                        .addSecuritySchemes("oauth2", new SecurityScheme()
+                                .type(SecurityScheme.Type.OAUTH2)
+                                .flows(new OAuthFlows()
+                                        .authorizationCode(new OAuthFlow()
+                                                .authorizationUrl("http://localhost:8181/realms/bank-realm/protocol/openid-connect/auth")
+                                                .tokenUrl("http://localhost:8181/realms/bank-realm/protocol/openid-connect/token")
+                                                .scopes(new Scopes()
+                                                        .addString("openid", "openid")
+                                                        .addString("profile", "profile")
+                                                        .addString("email", "email"))))))
                 .servers(List.of(new Server().url(gatewayUrl).description("Gateway")));
     }
 }

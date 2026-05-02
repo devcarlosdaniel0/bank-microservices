@@ -1,10 +1,10 @@
 Finalizadas:
 * criar queries SQL pro flyway - OK
 * Remover Security Config do User e Currency ms - OK
+* arrumar swagger para fazer login via Keycloak - OK
 
 A fazer:
 * arrumar as URLs de acesso (APENAS QUANDO DOCKERIZAR)
-* arrumar swagger
 * configurar Kafka pro produção
 * configurar keycloak pra produção
 * dockerizar
