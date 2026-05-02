@@ -1,0 +1,1 @@
+RENAME TABLE tb_transaction TO tb_transactions;

@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tb_transaction")
+@Table(name = "tb_transactions")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Transaction {

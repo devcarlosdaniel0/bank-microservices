@@ -1,0 +1,13 @@
+Finalizadas:
+* criar queries SQL pro flyway - OK
+
+A fazer:
+* finalizar testes unitários
+* arrumar as URLs de acesso
+* arrumar swagger
+* configurar Kafka pro produção
+* configurar keycloak pra produção
+* dockerizar
+* arrumar o front end para uma interface mobile friendly com tratamento de erros
+* desenvolver fluxo de token jwt para dar refresh e não ficar no localstorage
+* procurar um lugar pra prod, provavelmente AWS, mas verificar se é pago

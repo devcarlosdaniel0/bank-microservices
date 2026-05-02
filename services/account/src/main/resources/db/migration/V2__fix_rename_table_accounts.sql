@@ -1,0 +1,1 @@
+RENAME TABLE tb_account TO tb_accounts;
